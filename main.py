@@ -40,7 +40,6 @@ def main():
         return
     utilizador = registar_utilizador()
     if utilizador is None:
-        print(Fore.LIGHTRED_EX + "\n  Registo cancelado — és menor de idade.\n")
         return
     print(Fore.LIGHTGREEN_EX + f"\n  Registo concluído com sucesso! Bem-vindo, {utilizador.nome}!")
     menu_jogos(casino, utilizador)

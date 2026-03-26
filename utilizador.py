@@ -73,8 +73,13 @@ def registar_utilizador() -> "Utilizador | None":
             break
         except (ValueError, IndexError):
             _erro("Formato inválido. Use DD/MM/AAAA.")
-    if not u.maior_de_idade:
+    if u.idade < 18:
         _erro(f"Tens {u.idade} anos — não podes registar-te (mínimo 18 anos).")
+        _erro("Registo cancelado — és menor de idade.")
+        return None
+    if u.idade > 160:
+        _erro(f"Tens {u.idade} anos — não podes registar-te (idade impossível).")
+        _erro("Registo cancelado — idade inválida.")
         return None
     _ok(f"Tens {u.idade} anos — podes prosseguir.")
     while True:
@@ -87,7 +92,7 @@ def registar_utilizador() -> "Utilizador | None":
     u.conta = _input("Número de conta bancária (IBAN ou outro): ")
     _ok("Conta registada.")
     while True:
-        raw = _input("Saldo inicial para depositar (€): ")
+        raw = _input("Saldo inicial para depositar (€) sem € na tua resposta: ")
         try:
             saldo = float(raw.replace(",", "."))
             if saldo < 0:

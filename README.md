@@ -1,1 +1,1 @@
-# casinoo
+# casino

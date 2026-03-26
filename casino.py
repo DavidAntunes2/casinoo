@@ -86,7 +86,7 @@ class Casino:
 
     def jogar_quiz(self, utilizador: Utilizador):
         print(Fore.LIGHTBLUE_EX + "\n╔══════════════════════════════════════╗")
-        print(Fore.LIGHTBLUE_EX + "║         QUIZ DE FUTEBOL 🏆           ║")
+        print(Fore.LIGHTBLUE_EX + "║           QUIZ DE FUTEBOL!           ║")
         print(Fore.LIGHTBLUE_EX + "╚══════════════════════════════════════╝")
         print(Fore.LIGHTWHITE_EX + f"  Jogador: {utilizador.nome}")
         print(Fore.LIGHTWHITE_EX + f"  Saldo actual: {utilizador.saldo:.2f} €\n")

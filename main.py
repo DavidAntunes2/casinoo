@@ -55,18 +55,22 @@ def main():
     print(Fore.LIGHTBLUE_EX + "\n╔══════════════════════════════════════╗")
     print(Fore.LIGHTBLUE_EX + "║          BEM-VINDO AO CASINO         ║")
     print(Fore.LIGHTBLUE_EX + "╚══════════════════════════════════════╝")
-    print(Fore.LIGHTWHITE_EX + "  1) Registar utilizador")
-    print(Fore.LIGHTWHITE_EX + "  2) Sair")
 
-    opcao = input(Fore.LIGHTYELLOW_EX + "\n  Escolha: " + Style.RESET_ALL).strip()
+    # FIX: loop para voltar a perguntar se a opção for inválida
+    while True:
+        print(Fore.LIGHTWHITE_EX + "  1) Registar utilizador")
+        print(Fore.LIGHTWHITE_EX + "  2) Sair")
 
-    if opcao == "2":
-        http_status(200, "OK — Saída solicitada pelo utilizador")
-        return
+        opcao = input(Fore.LIGHTYELLOW_EX + "\n  Escolha: " + Style.RESET_ALL).strip()
 
-    if opcao != "1":
+        if opcao == "2":
+            http_status(200, "OK — Saída solicitada pelo utilizador")
+            return
+
+        if opcao == "1":
+            break
+
         http_status(400, "Bad Request — Opção inválida")
-        return
 
     http_status(102, "Processing — A processar registo...")
     utilizador = registar_utilizador()

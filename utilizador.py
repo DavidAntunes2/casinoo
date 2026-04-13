@@ -79,7 +79,7 @@ def registar_utilizador() -> "Utilizador | None":
     u = Utilizador()
 
     while True:
-        nome = _input("Nome completo: ")
+        nome = _input("Primeiro e último nome: ")
         partes = nome.strip().split()
         if len(partes) >= 2 and all(len(p) >= 2 for p in partes):
             u.nome = nome

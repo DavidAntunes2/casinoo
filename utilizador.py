@@ -101,9 +101,10 @@ def registar_utilizador() -> "Utilizador | None":
         _erro("Registo cancelado — és menor de idade.")
         return None
 
-    if u.idade > 160:
-        _erro(f"Tens {u.idade} anos — não podes registar-te (idade impossível).")
-        _erro("Registo cancelado — idade inválida.")
+   if u.idade > 116:
+        _erro(f"A data introduzida resulta numa idade de {u.idade} anos.")
+        _erro("Verifica se a data de nascimento está correta (DD/MM/AAAA).")
+        _erro("Registo cancelado.")
         return None
 
     _ok(f"Tens {u.idade} anos — podes prosseguir.")

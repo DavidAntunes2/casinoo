@@ -93,6 +93,7 @@ class Casino:
 
         perguntas = random.sample(PERGUNTAS_FUTEBOL, k=min(3, len(PERGUNTAS_FUTEBOL)))
         pontuacao = 0
+        perguntas_jogadas = 0  # FIX: contador de perguntas efectivamente jogadas
 
         for i, q in enumerate(perguntas, 1):
             _linha()
@@ -124,6 +125,8 @@ class Casino:
             else:
                 resp_texto = resp.title()
 
+            perguntas_jogadas += 1  # FIX: só incrementa após resposta dada
+
             if resp_texto.lower() == q["resposta"].lower():
                 ganho = aposta * (q["premio"] / 100)
                 utilizador.saldo += ganho
@@ -140,7 +143,8 @@ class Casino:
                     break
 
         _linha()
-        print(Fore.LIGHTCYAN_EX + f"\n  Resultado final: {pontuacao}/{len(perguntas)} respostas correctas")
+        # FIX: usa perguntas_jogadas em vez de len(perguntas) para reflectir o real
+        print(Fore.LIGHTCYAN_EX + f"\n  Resultado final: {pontuacao}/{perguntas_jogadas} respostas correctas")
         print(Fore.LIGHTWHITE_EX + f"  Saldo final: {utilizador.saldo:.2f} €")
 
     # ──────────────────────────────────────────
@@ -148,7 +152,7 @@ class Casino:
     # ──────────────────────────────────────────
 
     def jogar_slots(self, utilizador: Utilizador):
-        SIMBOLOS = ["🍒", "🍋", "🔔", "⭐", "7️⃣ "]
+        SIMBOLOS = ["🍒", "🍋", "🔔", "⭐", "7️⃣"]  # FIX: removido espaço extra no "7️⃣"
 
         print(Fore.LIGHTBLUE_EX + "\n╔══════════════════════════════════════╗")
         print(Fore.LIGHTBLUE_EX + "║              SLOT MACHINE              ║")
@@ -170,8 +174,10 @@ class Casino:
             except ValueError:
                 _erro("Aposta inválida.")
                 continue
+
             rodas = [random.choice(SIMBOLOS) for _ in range(3)]
             print(Fore.LIGHTCYAN_EX + "  [ " + "  |  ".join(rodas) + " ]")
+
             if rodas[0] == rodas[1] == rodas[2]:
                 ganho = aposta * 3
                 utilizador.saldo += ganho

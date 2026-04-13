@@ -129,7 +129,7 @@ def registar_utilizador() -> "Utilizador | None":
             _ok(f"Saldo: {saldo:.2f} €")
             break
         except ValueError:
-            _erro("Insire um valor númerico sem € no final (o programa depois quando mostrar faz isso).")
+            _erro("Insira um valor numérico sem € no final (o programa depois quando mostrar faz isso).")  # FIX: "Insire" → "Insira", "númerico" → "numérico"
 
     u.profissao = _input("Profissão: ")
     u.nacionalidade = _input("Nacionalidade: ")

@@ -51,7 +51,7 @@ def limpar():
 def _strip_ansi(t):
     return re.sub(r'\033\[[^m]*m', '', t)
 
-def _centro(texto, largura=W):
+def centro(texto, largura=W):
     pad = max(0, (largura - len(_strip_ansi(texto))) // 2)
     return " " * pad + texto
 
@@ -81,11 +81,11 @@ def cabecalho():
               C.pintar("♥  ", C.BOLD, C.VERMELHO) +
               C.pintar("♦  ", C.BOLD, C.VERMELHO) +
               C.pintar("♣  ", C.BOLD, C.CINZA))
-    print(_centro(naipes))
+    print(centro(naipes))
 
-    print(_centro(C.pintar("♜  ROYAL CASINO VIP  ♜", C.BOLD, C.OURO)))
-    print(_centro(C.pintar("━━━━  Membros Exclusivos  ━━━━", C.OURO2)))
-    print(_centro(naipes))
+    print(centro(C.pintar("♜  ROYAL CASINO VIP  ♜", C.BOLD, C.OURO)))
+    print(centro(C.pintar("━━━━  Membros Exclusivos  ━━━━", C.OURO2)))
+    print(centro(naipes))
 
     linha_dupla()
     espaco()

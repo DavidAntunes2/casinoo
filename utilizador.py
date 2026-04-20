@@ -170,7 +170,7 @@ def menu():
 
         elif op == "0":
             cabecalho()
-            print(centro(C.pintar("Até à próxima.  Boa sorte! ♠", C.BOLD, C.OURO)))
+            print(centro(C.pintar("♠  Até à próxima, Membro VIP.  ♠", C.BOLD, C.OURO)))
             espaco()
             linha_dupla()
             espaco()

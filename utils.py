@@ -48,11 +48,11 @@ W = 70
 def limpar():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-def _strip_ansi(t):
+def strip_ansi(t):
     return re.sub(r'\033\[[^m]*m', '', t)
 
 def centro(texto, largura=W):
-    pad = max(0, (largura - len(_strip_ansi(texto))) // 2)
+    pad = max(0, (largura - len(strip_ansi(texto))) // 2)
     return " " * pad + texto
 
 def linha_dupla(cor=C.OURO):
@@ -67,37 +67,35 @@ def linha_pontilhada(cor=C.CINZA2):
 def espaco():
     print()
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  COMPONENTES VISUAIS
-# ══════════════════════════════════════════════════════════════════════════════
+def info(rotulo, valor, cor_val=C.CREME):
+    dots = W - len(rotulo) - len(strip_ansi(valor)) - 6
+    dots = max(3, dots)
+    print(C.pintar(f"  {rotulo} ", C.CINZA) +
+          C.pintar("·" * dots, C.CINZA2) +
+          C.pintar(f" {valor}", C.BOLD, cor_val))
 
 def cabecalho():
     limpar()
     espaco()
     linha_dupla()
-
     naipes = (C.pintar("  ♠  ", C.BOLD, C.CINZA) +
               C.pintar("♥  ", C.BOLD, C.VERMELHO) +
               C.pintar("♦  ", C.BOLD, C.VERMELHO) +
               C.pintar("♣  ", C.BOLD, C.CINZA))
     print(centro(naipes))
-
     print(centro(C.pintar("♜  ROYAL CASINO VIP  ♜", C.BOLD, C.OURO)))
     print(centro(C.pintar("━━━━  Membros Exclusivos  ━━━━", C.OURO2)))
     print(centro(naipes))
-
     linha_dupla()
     espaco()
 
-
 def moldura(texto, cor_borda=C.OURO, cor_texto=C.CREME):
     inner = W - 2
-    print(C.pintar("╔" + "═" * inner + "╗", cor_borda))
     visivel = texto.upper()
     pad_total = inner - len(visivel)
     pad_esq = pad_total // 2
     pad_dir = pad_total - pad_esq
+    print(C.pintar("╔" + "═" * inner + "╗", cor_borda))
     print(C.pintar("║", cor_borda) +
           " " * pad_esq +
           C.pintar(visivel, C.BOLD, cor_texto) +
@@ -105,12 +103,10 @@ def moldura(texto, cor_borda=C.OURO, cor_texto=C.CREME):
           C.pintar("║", cor_borda))
     print(C.pintar("╚" + "═" * inner + "╝", cor_borda))
 
-
 def badge_rank(rank):
     if "HIGH ROLLER" in rank:
         return C.pintar(" ♛ HIGH ROLLER ", C.BOLD, C.BG_OURO, C.CREME)
     return C.pintar(" ♠ VIP ", C.BOLD, C.BG_VERDE, C.CREME)
-
 
 def sucesso(msg):
     prefixo = C.pintar(" ✔ ", C.BOLD, C.BG_VERDE, C.CREME)
@@ -120,39 +116,26 @@ def erro(msg):
     prefixo = C.pintar(" ✖ ", C.BOLD, C.BG_VERMELHO, C.CREME)
     print(prefixo + C.pintar(f" {msg}", C.BOLD, C.VERMELHO))
 
-
-def info(rotulo, valor, cor_val=C.CREME):
-    """Linha:  Rótulo ············ Valor"""
-    dots = W - len(rotulo) - len(_strip_ansi(valor)) - 6
-    dots = max(3, dots)
-    print(C.pintar(f"  {rotulo} ", C.CINZA) +
-          C.pintar("·" * dots, C.CINZA2) +
-          C.pintar(f" {valor}", C.BOLD, cor_val))
-
-
 def animacao_loading(msg="A processar", duracao=0.8, passos=10):
     frames = ["◐", "◓", "◑", "◒"]
     for i in range(passos):
-        frame = frames[i % len(frames)]
-        print(C.pintar(f"\r  {frame}  {msg}...", C.OURO), end="", flush=True)
+        print(C.pintar(f"\r  {frames[i % 4]}  {msg}...", C.OURO), end="", flush=True)
         time.sleep(duracao / passos)
     print("\r" + " " * (len(msg) + 14) + "\r", end="")
-
 
 def tabela_cliente(id_vip, dados):
     espaco()
     linha_simples(C.CINZA2)
     print(C.pintar(f"  ◆ {id_vip}", C.BOLD, C.OURO))
     linha_pontilhada()
-    info("Nome",   dados['nome'],             C.CREME)
-    info("Idade",  f"{dados['idade']} anos",  C.CREME)
-    info("Saldo",  f"{dados['saldo']:.2f} €", C.VERDE if dados['saldo'] >= 0 else C.VERMELHO)
-    info("NIF",    dados['nif'],              C.CINZA)
-    info("IBAN",   dados['iban'],             C.CINZA)
-    info("Email",  dados['mail'],             C.ROXO)
+    info("Nome",  dados['nome'],             C.CREME)
+    info("Idade", f"{dados['idade']} anos",  C.CREME)
+    info("Saldo", f"{dados['saldo']:.2f} €", C.VERDE if dados['saldo'] >= 0 else C.VERMELHO)
+    info("NIF",   dados['nif'],              C.CINZA)
+    info("IBAN",  dados['iban'],             C.CINZA)
+    info("Email", dados['mail'],             C.ROXO)
     print(C.pintar("  Rank  ", C.CINZA) + "  " + badge_rank(dados['rank']))
     linha_simples(C.CINZA2)
-
 
 def menu_opcao(num, texto):
     print(C.pintar(f"  [{num}]", C.BOLD, C.OURO) +

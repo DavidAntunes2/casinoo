@@ -118,7 +118,7 @@ def ecra_listar():
 
     if not jogadores:
         espaco()
-        print(_centro(C.pintar("Nenhum cliente registado ainda.", C.DIM, C.CINZA)))
+        print(centro(C.pintar("Nenhum cliente registado ainda.", C.DIM, C.CINZA)))
         espaco()
     else:
         total   = len(jogadores)
@@ -170,7 +170,7 @@ def menu():
 
         elif op == "0":
             cabecalho()
-            print(_centro(C.pintar("Até à próxima.  Boa sorte! ♠", C.BOLD, C.OURO)))
+            print(centro(C.pintar("Até à próxima.  Boa sorte! ♠", C.BOLD, C.OURO)))
             espaco()
             linha_dupla()
             espaco()

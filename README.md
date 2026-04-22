@@ -1,50 +1,55 @@
-♜ Royal Casino VIP
-Sistema de gestão de membros VIP para terminal, desenvolvido em Python.
+♠ Royal Casino — Gestão de Membros
+Sistema de gestão de utilizadores de casino em Python, com menu de terminal interativo, validações e armazenamento em dicionário.
 
-Estrutura do Projeto
+📁 Estrutura do Projeto
 SRC/
-├── main.py          # Ponto de entrada — todos os ecrãs e interação com o utilizador
-├── utilizador.py    # Lógica de negócio — registo e consulta de clientes
-└── utils.py         # Utilitários visuais, validações e persistência de dados
+├── main.py          # Menu terminal e interface com o utilizador
+├── utilizador.py    # CRUD da entidade Utilizador de Casino
+└── utils.py         # Geração de IDs e validações
 
-Funcionalidades
-
-Registar novos clientes VIP com validação completa de dados
-Listar todos os clientes com ficha detalhada e estatísticas gerais
-Atribuição automática de rank (VIP ou HIGH ROLLER) com base no depósito
-Persistência de dados em ficheiro JSON local
-Interface visual rica no terminal com cores ANSI
-
-
-Validações
-CampoRegrasNomeSó letras e hífens, primeira letra maiúscula automáticaEmailFormato x@x.x, normalizado para minúsculasNIF9 dígitos, primeiro dígito válido, dígito de controlo (mod-11)IBANFormato PT + 23 dígitos, checksum mod-97IdadeEntre 18 e 116 anos, múltiplos formatos de data aceitesDepósitoNúmero positivo, vírgula ou ponto como separador decimalConteúdoFiltro de linguagem ofensiva em nomes e emails
-
-Ranks
-RankCondição♠ VIPDepósito inicial abaixo de 5000 €♛ HIGH ROLLERDepósito inicial igual ou superior a 5000 €
-
-Formatos de Data Aceites
-DD-MM-AAAA    →  15-06-1990
-AAAA-MM-DD    →  1990-06-15
-DD/MM/AAAA    →  15/06/1990
-
-Como Executar
-Requisitos: Python 3.8+
+▶️ Como Correr
 bashpython main.py
 
-O terminal deve suportar cores ANSI. No Windows, o PowerShell e o terminal do PyCharm suportam nativamente.
+Requer Python 3.8+. Não tem dependências externas.
 
 
-Dados Guardados
-Os clientes são guardados em jogadores.json na mesma pasta do projeto. O ficheiro é criado automaticamente no primeiro registo.
-Exemplo de entrada:
-json{
-  "VIP-533J": {
-    "nome": "João Silva",
-    "idade": 34,
-    "nif": "500963533",
-    "iban": "PT50000201231234567890154",
-    "saldo": 1500.0,
-    "rank": "♠ VIP",
-    "mail": "joao@mail.com"
-  }
+⚙️ Funcionalidades
+OpçãoOperaçãoDescrição1Criar utilizadorRegista um novo membro com validações2Listar utilizadoresMostra todos os membros registados3Consultar utilizadorPesquisa um membro pelo ID4Atualizar utilizadorEdita campos de um membro existente5Remover utilizadorElimina um membro (pede confirmação)0SairEncerra o programa
+
+🗂️ Estrutura de um Utilizador
+python{
+    "nome":             "João Silva",
+    "email":            "joao@email.com",
+    "tipo_conta":       "vip",           # standard | vip | high roller
+    "data_nascimento":  "01-01-1990",
+    "nif":              "123456789",
+    "iban":             "PT50000201231234567890154"
 }
+
+✅ Validações
+Todas as validações estão em utils.py e são chamadas antes de qualquer escrita no dicionário.
+CampoRegrasnomeApenas letras e hífens, sem palavrões, capitalização automáticaemailFormato x@x.xtipo_contaApenas standard, vip ou high rollerdata_nascimentoFormatos DD-MM-AAAA, AAAA-MM-DD ou DD/MM/AAAA — mínimo 18 anosnif9 dígitos com verificação do dígito de controloibanFormato PT + 23 dígitos com checksum mod 97
+
+🔁 Códigos de Resposta
+Todas as funções de utilizador.py devolvem um tuplo (código, resultado):
+CódigoSignificado201Criado com sucesso200Operação bem-sucedida404Utilizador não encontrado500Erro de validação
+
+📋 Exemplo de Uso
+===== MENU UTILIZADOR CASINO =====
+[1]  Criar utilizador
+[2]  Listar utilizadores
+[3]  Consultar utilizador
+[4]  Atualizar utilizador
+[5]  Remover utilizador
+[0]  Sair
+
+▶  Opção: 1
+
+▶  Nome completo: João Silva
+▶  Email: joao@email.com
+▶  Tipo de conta: vip
+▶  Data nascimento: 01-01-1990
+▶  NIF: 123456789
+▶  IBAN: PT50000201231234567890154
+
+ ✔  Membro registado com sucesso!

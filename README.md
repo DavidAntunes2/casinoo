@@ -1,55 +1,123 @@
-♠ Royal Casino — Gestão de Membros
-Sistema de gestão de utilizadores de casino em Python, com menu de terminal interativo, validações e armazenamento em dicionário.
+# ♠ Royal Casino — Sistema de Gestão
 
-📁 Estrutura do Projeto
+Sistema de gestão de um casino em Python, com menu de terminal interativo, validações e armazenamento em dicionário.
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
 SRC/
-├── main.py          # Menu terminal e interface com o utilizador
-├── utilizador.py    # CRUD da entidade Utilizador de Casino
-└── utils.py         # Geração de IDs e validações
+├── main.py              # Menu terminal e interface com o utilizador
+├── utilizador.py        # CRUD da entidade Utilizador de Casino
+├── casino.py            # CRUD da entidade Casino
+└── utils.py             # Geração de IDs e validações
+```
 
-▶️ Como Correr
-bashpython main.py
+---
 
-Requer Python 3.8+. Não tem dependências externas.
+## ▶️ Como Correr
 
+```bash
+python main.py
+```
 
-⚙️ Funcionalidades
-OpçãoOperaçãoDescrição1Criar utilizadorRegista um novo membro com validações2Listar utilizadoresMostra todos os membros registados3Consultar utilizadorPesquisa um membro pelo ID4Atualizar utilizadorEdita campos de um membro existente5Remover utilizadorElimina um membro (pede confirmação)0SairEncerra o programa
+> Requer Python 3.8+. Não tem dependências externas.
 
-🗂️ Estrutura de um Utilizador
-python{
+---
+
+## 👤 Utilizador de Casino
+
+### Campos
+
+```python
+{
     "nome":             "João Silva",
     "email":            "joao@email.com",
-    "tipo_conta":       "vip",           # standard | vip | high roller
+    "tipo_conta":       "vip",            # standard | vip | high roller
     "data_nascimento":  "01-01-1990",
     "nif":              "123456789",
     "iban":             "PT50000201231234567890154"
 }
+```
 
-✅ Validações
-Todas as validações estão em utils.py e são chamadas antes de qualquer escrita no dicionário.
-CampoRegrasnomeApenas letras e hífens, sem palavrões, capitalização automáticaemailFormato x@x.xtipo_contaApenas standard, vip ou high rollerdata_nascimentoFormatos DD-MM-AAAA, AAAA-MM-DD ou DD/MM/AAAA — mínimo 18 anosnif9 dígitos com verificação do dígito de controloibanFormato PT + 23 dígitos com checksum mod 97
+### Funções
 
-🔁 Códigos de Resposta
-Todas as funções de utilizador.py devolvem um tuplo (código, resultado):
-CódigoSignificado201Criado com sucesso200Operação bem-sucedida404Utilizador não encontrado500Erro de validação
+| Função                        | Descrição                        |
+|-------------------------------|----------------------------------|
+| `criar_utilizador_casino()`   | Regista um novo membro           |
+| `listar_utilizadores_casino()`| Lista todos os membros           |
+| `consultar_utilizador_casino()`| Consulta um membro pelo ID      |
+| `atualizar_utilizador_casino()`| Atualiza campos de um membro    |
+| `remover_utilizador_casino()` | Remove um membro                 |
 
-📋 Exemplo de Uso
-===== MENU UTILIZADOR CASINO =====
-[1]  Criar utilizador
-[2]  Listar utilizadores
-[3]  Consultar utilizador
-[4]  Atualizar utilizador
-[5]  Remover utilizador
-[0]  Sair
+---
 
-▶  Opção: 1
+## 🏛️ Casino
 
-▶  Nome completo: João Silva
-▶  Email: joao@email.com
-▶  Tipo de conta: vip
-▶  Data nascimento: 01-01-1990
-▶  NIF: 123456789
-▶  IBAN: PT50000201231234567890154
+### Campos
 
- ✔  Membro registado com sucesso!
+```python
+{
+    "nome":             "Royal Lisboa",
+    "localizacao":      "Lisboa",
+    "licenca":          "PT-2024-001",
+    "data_inauguracao": "01-01-2024"
+}
+```
+
+### Funções
+
+| Função               | Descrição                        |
+|----------------------|----------------------------------|
+| `criar_casino()`     | Regista um novo casino           |
+| `listar_casinos()`   | Lista todos os casinos           |
+| `consultar_casino()` | Consulta um casino pelo ID       |
+| `atualizar_casino()` | Atualiza campos de um casino     |
+| `remover_casino()`   | Remove um casino                 |
+
+---
+
+## ✅ Validações (`utils.py`)
+
+### Utilizador
+
+| Campo              | Regras                                                                 |
+|--------------------|------------------------------------------------------------------------|
+| `nome`             | Apenas letras e hífens, sem palavrões, capitalização automática        |
+| `email`            | Formato `x@x.x`                                                        |
+| `tipo_conta`       | Apenas `standard`, `vip` ou `high roller`                              |
+| `data_nascimento`  | Formatos `DD-MM-AAAA`, `AAAA-MM-DD` ou `DD/MM/AAAA` — mínimo 18 anos  |
+| `nif`              | 9 dígitos com verificação do dígito de controlo                        |
+| `iban`             | Formato `PT` + 23 dígitos com checksum mod 97                          |
+
+### Casino
+
+| Campo              | Regras                                                                 |
+|--------------------|------------------------------------------------------------------------|
+| `nome`             | Apenas letras e hífens, sem palavrões, capitalização automática        |
+| `localizacao`      | Não pode estar vazio                                                   |
+| `licenca`          | Não pode estar vazio, convertido para maiúsculas                       |
+| `data_inauguracao` | Formatos `DD-MM-AAAA`, `AAAA-MM-DD` ou `DD/MM/AAAA`                   |
+
+---
+
+## 🔁 Códigos de Resposta
+
+Todas as funções devolvem um tuplo `(código, resultado)`:
+
+| Código | Significado               |
+|--------|---------------------------|
+| `201`  | Criado com sucesso        |
+| `200`  | Operação bem-sucedida     |
+| `404`  | Registo não encontrado    |
+| `500`  | Erro de validação         |
+
+---
+
+## 🔑 Formato dos IDs
+
+| Entidade   | Formato        | Exemplo        |
+|------------|----------------|----------------|
+| Utilizador | `UC-XXXXXXXX`  | `UC-3F2A1B9C`  |
+| Casino     | `CA-XXXXXXXX`  | `CA-7D4E2F1A`  |

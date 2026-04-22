@@ -102,3 +102,26 @@ def validar_tipo_conta(tipo):
     if tipo not in tipos_validos:
         return False, f"Tipo de conta inválido. Escolha: {', '.join(tipos_validos)}."
     return True, tipo
+    def gerar_id_casino():
+    return "CA-" + str(uuid.uuid4())[:8].upper()
+
+def validar_localizacao(loc):
+    loc = loc.strip()
+    if not loc:
+        return False, "Localização não pode estar vazia."
+    return True, loc.title()
+
+def validar_licenca(lic):
+    lic = lic.strip().upper()
+    if not lic:
+        return False, "Licença não pode estar vazia."
+    return True, lic
+
+def validar_data(data_str):
+    for fmt in ("%d-%m-%Y", "%Y-%m-%d", "%d/%m/%Y"):
+        try:
+            datetime.strptime(data_str.strip(), fmt)
+            return True, data_str.strip()
+        except ValueError:
+            continue
+    return False, "Data inválida. Use DD-MM-AAAA, AAAA-MM-DD ou DD/MM/AAAA."

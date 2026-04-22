@@ -8,10 +8,10 @@ Sistema de gestão de um casino em Python, com menu de terminal interativo, vali
 
 ```
 SRC/
-├── main.py              # Menu terminal e interface com o utilizador
-├── utilizador.py        # CRUD da entidade Utilizador de Casino
-├── casino.py            # CRUD da entidade Casino
-└── utils.py             # Geração de IDs e validações
+├── main.py          # Menu terminal e interface com o utilizador
+├── utilizador.py    # CRUD da entidade Utilizador de Casino
+├── casino.py        # CRUD da entidade Casino
+└── utils.py         # Geração de IDs e validações
 ```
 
 ---
@@ -26,7 +26,30 @@ python main.py
 
 ---
 
-## 👤 Utilizador de Casino
+## 🗺️ Navegação
+
+```
+Menu Principal
+├── [1] Gestão de Utilizadores
+│     ├── [1] Criar utilizador
+│     ├── [2] Listar utilizadores
+│     ├── [3] Consultar utilizador
+│     ├── [4] Atualizar utilizador
+│     ├── [5] Remover utilizador
+│     └── [0] Voltar
+├── [2] Gestão de Casinos
+│     ├── [1] Criar casino
+│     ├── [2] Listar casinos
+│     ├── [3] Consultar casino
+│     ├── [4] Atualizar casino
+│     ├── [5] Remover casino
+│     └── [0] Voltar
+└── [0] Sair
+```
+
+---
+
+## 👤 Utilizador de Casino (`utilizador.py`)
 
 ### Campos
 
@@ -43,17 +66,17 @@ python main.py
 
 ### Funções
 
-| Função                        | Descrição                        |
-|-------------------------------|----------------------------------|
-| `criar_utilizador_casino()`   | Regista um novo membro           |
-| `listar_utilizadores_casino()`| Lista todos os membros           |
-| `consultar_utilizador_casino()`| Consulta um membro pelo ID      |
-| `atualizar_utilizador_casino()`| Atualiza campos de um membro    |
-| `remover_utilizador_casino()` | Remove um membro                 |
+| Função                         | Descrição                         |
+|--------------------------------|-----------------------------------|
+| `criar_utilizador_casino()`    | Regista um novo membro            |
+| `listar_utilizadores_casino()` | Lista todos os membros            |
+| `consultar_utilizador_casino()`| Consulta um membro pelo ID        |
+| `atualizar_utilizador_casino()`| Atualiza campos de um membro      |
+| `remover_utilizador_casino()`  | Remove um membro                  |
 
 ---
 
-## 🏛️ Casino
+## 🏛️ Casino (`casino.py`)
 
 ### Campos
 
@@ -82,23 +105,23 @@ python main.py
 
 ### Utilizador
 
-| Campo              | Regras                                                                 |
-|--------------------|------------------------------------------------------------------------|
-| `nome`             | Apenas letras e hífens, sem palavrões, capitalização automática        |
-| `email`            | Formato `x@x.x`                                                        |
-| `tipo_conta`       | Apenas `standard`, `vip` ou `high roller`                              |
-| `data_nascimento`  | Formatos `DD-MM-AAAA`, `AAAA-MM-DD` ou `DD/MM/AAAA` — mínimo 18 anos  |
-| `nif`              | 9 dígitos com verificação do dígito de controlo                        |
-| `iban`             | Formato `PT` + 23 dígitos com checksum mod 97                          |
+| Campo              | Regras                                                                |
+|--------------------|-----------------------------------------------------------------------|
+| `nome`             | Apenas letras e hífens, sem palavrões, capitalização automática       |
+| `email`            | Formato `x@x.x`                                                       |
+| `tipo_conta`       | Apenas `standard`, `vip` ou `high roller`                             |
+| `data_nascimento`  | Formatos `DD-MM-AAAA`, `AAAA-MM-DD` ou `DD/MM/AAAA` — mínimo 18 anos |
+| `nif`              | 9 dígitos com verificação do dígito de controlo                       |
+| `iban`             | Formato `PT` + 23 dígitos com checksum mod 97                         |
 
 ### Casino
 
-| Campo              | Regras                                                                 |
-|--------------------|------------------------------------------------------------------------|
-| `nome`             | Apenas letras e hífens, sem palavrões, capitalização automática        |
-| `localizacao`      | Não pode estar vazio                                                   |
-| `licenca`          | Não pode estar vazio, convertido para maiúsculas                       |
-| `data_inauguracao` | Formatos `DD-MM-AAAA`, `AAAA-MM-DD` ou `DD/MM/AAAA`                   |
+| Campo              | Regras                                                                |
+|--------------------|-----------------------------------------------------------------------|
+| `nome`             | Apenas letras e hífens, sem palavrões, capitalização automática       |
+| `localizacao`      | Não pode estar vazio                                                  |
+| `licenca`          | Não pode estar vazio, convertido para maiúsculas                      |
+| `data_inauguracao` | Formatos `DD-MM-AAAA`, `AAAA-MM-DD` ou `DD/MM/AAAA`                  |
 
 ---
 
@@ -106,18 +129,18 @@ python main.py
 
 Todas as funções devolvem um tuplo `(código, resultado)`:
 
-| Código | Significado               |
-|--------|---------------------------|
-| `201`  | Criado com sucesso        |
-| `200`  | Operação bem-sucedida     |
-| `404`  | Registo não encontrado    |
-| `500`  | Erro de validação         |
+| Código | Significado            |
+|--------|------------------------|
+| `201`  | Criado com sucesso     |
+| `200`  | Operação bem-sucedida  |
+| `404`  | Registo não encontrado |
+| `500`  | Erro de validação      |
 
 ---
 
 ## 🔑 Formato dos IDs
 
-| Entidade   | Formato        | Exemplo        |
-|------------|----------------|----------------|
-| Utilizador | `UC-XXXXXXXX`  | `UC-3F2A1B9C`  |
-| Casino     | `CA-XXXXXXXX`  | `CA-7D4E2F1A`  |
+| Entidade   | Formato       | Exemplo       |
+|------------|---------------|---------------|
+| Utilizador | `UC-XXXXXXXX` | `UC-3F2A1B9C` |
+| Casino     | `CA-XXXXXXXX` | `CA-7D4E2F1A` |

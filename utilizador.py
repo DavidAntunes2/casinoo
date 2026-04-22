@@ -1,80 +1,130 @@
-from utils import *
+# ==============================
+# utilizador_casino.py
+# CRUD simples para entidade Utilizador de Casino
+# SEM utilização de classes
+# armazenamento em dicionario
+# validações feitas aqui (não no main)
+# ==============================
 
-carregar_dados()
+from utils import (
+    gerar_id_utilizador_casino,
+    validar_nome,
+    validar_email,
+    validar_nif,
+    validar_iban,
+    validar_data_nascimento,
+    validar_tipo_conta
+)
+
+utilizadores_casino = {}
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  LÓGICA DE NEGÓCIO  —  sem prints, só retorna (codigo, mensagem/dados)
-# ══════════════════════════════════════════════════════════════════════════════
+# CREATE
+def criar_utilizador_casino(nome, email, tipo_conta, data_nascimento, nif, iban):
 
-def registar_utilizador(p_nome, u_nome, nif, iban, saldo, nasc, mail):
-
-    ok, p_nome = validar_nome_parte(p_nome, "Primeiro nome")
+    ok, res = validar_nome(nome)
     if not ok:
-        return 400, p_nome
+        return 500, res
+    nome = res
 
-    ok, u_nome = validar_nome_parte(u_nome, "Último nome")
+    ok, res = validar_email(email)
     if not ok:
-        return 400, u_nome
+        return 500, res
+    email = res
 
-    nome_completo = f"{p_nome} {u_nome}"
-
-    if ofensivo(nome_completo):
-        return 400, "Nome contém termos proibidos."
-
-    ok, mail = validar_email(mail)
+    ok, res = validar_tipo_conta(tipo_conta)
     if not ok:
-        return 400, mail
+        return 500, res
+    tipo_conta = res
 
-    if ofensivo(mail):
-        return 400, "Email contém termos proibidos."
-
-    ok, nif = validar_nif(nif)
+    ok, res = validar_data_nascimento(data_nascimento)
     if not ok:
-        return 400, nif
+        return 500, res
 
-    ok, iban = validar_iban(iban)
+    ok, res = validar_nif(nif)
     if not ok:
-        return 400, iban
+        return 500, res
+    nif = res
 
-    ok, idade = validar_idade(nasc)
+    ok, res = validar_iban(iban)
     if not ok:
-        return 400, idade
+        return 500, res
+    iban = res
 
-    try:
-        saldo = float(str(saldo).replace(',', '.'))
-        if saldo < 0:
-            return 400, "Depósito negativo."
-    except Exception:
-        return 400, "Saldo inválido."
-
-    id_vip = f"VIP-{nif[-3:]}{p_nome[0]}"
-
-    if id_vip in jogadores:
-        return 409, f"Já existe: {id_vip}"
-
-    jogadores[id_vip] = {
-        "nome":  nome_completo,
-        "idade": idade,
-        "nif":   nif,
-        "iban":  iban,
-        "saldo": saldo,
-        "rank":  "💎 HIGH ROLLER" if saldo >= 5000 else "♠ VIP",
-        "mail":  mail
+    id_utilizador_casino = gerar_id_utilizador_casino()
+    utilizador_casino = {
+        "nome": nome,
+        "email": email,
+        "tipo_conta": tipo_conta,
+        "data_nascimento": data_nascimento,
+        "nif": nif,
+        "iban": iban
     }
+    utilizadores_casino[id_utilizador_casino] = utilizador_casino
+    return 201, utilizador_casino
 
-    guardar_dados()
-    return 201, id_vip
+
+# READ (listar todos)
+def listar_utilizadores_casino():
+    if not utilizadores_casino:
+        return 404, "Não existem utilizadores de casino registados."
+    return 200, utilizadores_casino
 
 
-def obter_resumo():
-    """Devolve dict com estatísticas gerais para a main imprimir."""
-    total   = len(jogadores)
-    saldo_t = sum(v['saldo'] for v in jogadores.values())
-    hr      = sum(1 for v in jogadores.values() if "HIGH ROLLER" in v['rank'])
-    return {
-        "total":   total,
-        "saldo_t": saldo_t,
-        "hr":      hr,
-        "vip":     total - hr,
-    }
+# READ (consultar individual)
+def consultar_utilizador_casino(id_utilizador_casino):
+    if id_utilizador_casino not in utilizadores_casino:
+        return 404, "Utilizador de casino não encontrado."
+    return 200, utilizadores_casino[id_utilizador_casino]
+
+
+# UPDATE
+def atualizar_utilizador_casino(id_utilizador_casino, nome=None, email=None, tipo_conta=None, data_nascimento=None, nif=None, iban=None):
+    if id_utilizador_casino not in utilizadores_casino:
+        return 404, "Utilizador de casino não encontrado."
+
+    if nome is not None:
+        ok, res = validar_nome(nome)
+        if not ok:
+            return 500, res
+        utilizadores_casino[id_utilizador_casino]["nome"] = res
+
+    if email is not None:
+        ok, res = validar_email(email)
+        if not ok:
+            return 500, res
+        utilizadores_casino[id_utilizador_casino]["email"] = res
+
+    if tipo_conta is not None:
+        ok, res = validar_tipo_conta(tipo_conta)
+        if not ok:
+            return 500, res
+        utilizadores_casino[id_utilizador_casino]["tipo_conta"] = res
+
+    if data_nascimento is not None:
+        ok, res = validar_data_nascimento(data_nascimento)
+        if not ok:
+            return 500, res
+        utilizadores_casino[id_utilizador_casino]["data_nascimento"] = data_nascimento
+
+    if nif is not None:
+        ok, res = validar_nif(nif)
+        if not ok:
+            return 500, res
+        utilizadores_casino[id_utilizador_casino]["nif"] = res
+
+    if iban is not None:
+        ok, res = validar_iban(iban)
+        if not ok:
+            return 500, res
+        utilizadores_casino[id_utilizador_casino]["iban"] = res
+
+    return 200, utilizadores_casino[id_utilizador_casino]
+
+
+# DELETE
+def remover_utilizador_casino(id_utilizador_casino):
+    if id_utilizador_casino not in utilizadores_casino:
+        return 404, "Utilizador de casino não encontrado."
+    del utilizadores_casino[id_utilizador_casino]
+    return 200, id_utilizador_casino

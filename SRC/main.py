@@ -11,22 +11,30 @@ from utilizador import (
     atualizar_utilizador_casino,
     remover_utilizador_casino
 )
+from casino import (
+    criar_casino,
+    listar_casinos,
+    consultar_casino,
+    atualizar_casino,
+    remover_casino
+)
 
 # ══════════════════════════════
 #  CORES ANSI
 # ══════════════════════════════
-R  = "\033[0m"
-B  = "\033[1m"
+R   = "\033[0m"
+B   = "\033[1m"
 DIM = "\033[2m"
 
-OURO    = "\033[38;5;220m"
-OURO2   = "\033[38;5;178m"
-CREME   = "\033[38;5;230m"
-VERDE   = "\033[38;5;40m"
-VERM    = "\033[38;5;160m"
-CINZA   = "\033[38;5;244m"
-CINZA2  = "\033[38;5;238m"
-ROXO    = "\033[38;5;135m"
+OURO   = "\033[38;5;220m"
+OURO2  = "\033[38;5;178m"
+CREME  = "\033[38;5;230m"
+VERDE  = "\033[38;5;40m"
+VERM   = "\033[38;5;160m"
+CINZA  = "\033[38;5;244m"
+CINZA2 = "\033[38;5;238m"
+ROXO   = "\033[38;5;135m"
+AZUL   = "\033[38;5;75m"
 
 BG_VERDE = "\033[48;5;22m"
 BG_VERM  = "\033[48;5;88m"
@@ -77,17 +85,46 @@ def mostrar_utilizador(id_uc, dados):
     print(f"  {CINZA}NIF   {CINZA2}{'·' * 10}{R}  {CINZA}{dados['nif']}{R}")
     print(f"  {CINZA}IBAN  {CINZA2}{'·' * 10}{R}  {CINZA}{dados['iban']}{R}")
 
-def menu():
+def mostrar_casino(id_c, dados):
+    print(f"  {CINZA2}{'· ' * (W // 2)}{R}")
+    print(f"  {B}{AZUL}◆ {id_c}{R}")
+    print(f"  {CINZA}Nome        {CINZA2}{'·' * 6}{R}  {CREME}{dados['nome']}{R}")
+    print(f"  {CINZA}Localização {CINZA2}{'·' * 6}{R}  {OURO2}{dados['localizacao']}{R}")
+    print(f"  {CINZA}Licença     {CINZA2}{'·' * 6}{R}  {ROXO}{dados['licenca']}{R}")
+    print(f"  {CINZA}Inauguração {CINZA2}{'·' * 6}{R}  {CREME}{dados['data_inauguracao']}{R}")
+
+
+# ══════════════════════════════
+#  MENU PRINCIPAL
+# ══════════════════════════════
+
+def menu_principal():
     cabecalho()
-    print(f"  {DIM}{CINZA}Escolha uma operação:{R}")
+    print(f"  {DIM}{CINZA}Escolha uma área:{R}")
+    print()
+    print(f"  {B}{OURO}[1]{R}  {OURO2}Gestão de Utilizadores{R}")
+    print(f"  {B}{OURO}[2]{R}  {AZUL}Gestão de Casinos{R}")
+    print(f"  {B}{OURO}[0]{R}  {CINZA}Sair{R}")
+    print()
+    print(f"  {OURO2}{'─' * W}{R}")
+    return input(f"\n  {B}{OURO2}▶  Opção: {R}").strip()
+
+
+# ══════════════════════════════
+#  MENU UTILIZADOR
+# ══════════════════════════════
+
+def menu_utilizador():
+    cabecalho()
+    print(f"  {DIM}{CINZA}Gestão de Utilizadores — Escolha uma operação:{R}")
     print()
     ops = [
-        ("1", "Criar utilizador",    VERDE),
-        ("2", "Listar utilizadores", OURO2),
-        ("3", "Consultar utilizador",OURO2),
-        ("4", "Atualizar utilizador",OURO2),
-        ("5", "Remover utilizador",  VERM),
-        ("0", "Sair",               CINZA),
+        ("1", "Criar utilizador",     VERDE),
+        ("2", "Listar utilizadores",  OURO2),
+        ("3", "Consultar utilizador", OURO2),
+        ("4", "Atualizar utilizador", OURO2),
+        ("5", "Remover utilizador",   VERM),
+        ("0", "Voltar",               CINZA),
     ]
     for num, texto, cor in ops:
         print(f"  {B}{OURO}[{num}]{R}  {cor}{texto}{R}")
@@ -96,11 +133,7 @@ def menu():
     return input(f"\n  {B}{OURO2}▶  Opção: {R}").strip()
 
 
-# ══════════════════════════════
-#  ECRÃS
-# ══════════════════════════════
-
-def ecra_criar():
+def ecra_criar_utilizador():
     cabecalho()
     secao("✦  Registar Novo Membro")
     nome  = inp("Nome completo")
@@ -122,7 +155,7 @@ def ecra_criar():
         erro(str(obj))
     pausa()
 
-def ecra_listar():
+def ecra_listar_utilizadores():
     cabecalho()
     secao("♠  Membros Registados")
     code, obj = listar_utilizadores_casino()
@@ -134,7 +167,7 @@ def ecra_listar():
         erro(str(obj))
     pausa()
 
-def ecra_consultar():
+def ecra_consultar_utilizador():
     cabecalho()
     secao("🔍  Consultar Membro")
     id_uc = inp("ID do utilizador")
@@ -145,7 +178,7 @@ def ecra_consultar():
         erro(str(obj))
     pausa()
 
-def ecra_atualizar():
+def ecra_atualizar_utilizador():
     cabecalho()
     secao("✎  Atualizar Membro")
     id_uc = inp("ID do utilizador")
@@ -158,8 +191,8 @@ def ecra_atualizar():
     iban  = inp("Novo IBAN")
     code, obj = atualizar_utilizador_casino(
         id_uc,
-        nome  or None, email or None, tipo  or None,
-        data  or None, nif   or None, iban  or None
+        nome  or None, email or None, tipo or None,
+        data  or None, nif   or None, iban or None
     )
     if code == 200:
         ok("Membro atualizado com sucesso!")
@@ -168,10 +201,10 @@ def ecra_atualizar():
         erro(str(obj))
     pausa()
 
-def ecra_remover():
+def ecra_remover_utilizador():
     cabecalho()
     secao("✖  Remover Membro")
-    id_uc = inp("ID do utilizador")
+    id_uc   = inp("ID do utilizador")
     confirm = inp(f"Confirmar remoção de {id_uc}? (s/n)")
     if confirm.lower() != "s":
         print(f"\n  {CINZA}Operação cancelada.{R}")
@@ -186,17 +219,143 @@ def ecra_remover():
 
 
 # ══════════════════════════════
+#  MENU CASINO
+# ══════════════════════════════
+
+def menu_casino():
+    cabecalho()
+    print(f"  {DIM}{CINZA}Gestão de Casinos — Escolha uma operação:{R}")
+    print()
+    ops = [
+        ("1", "Criar casino",     VERDE),
+        ("2", "Listar casinos",   AZUL),
+        ("3", "Consultar casino", AZUL),
+        ("4", "Atualizar casino", AZUL),
+        ("5", "Remover casino",   VERM),
+        ("0", "Voltar",           CINZA),
+    ]
+    for num, texto, cor in ops:
+        print(f"  {B}{OURO}[{num}]{R}  {cor}{texto}{R}")
+    print()
+    print(f"  {OURO2}{'─' * W}{R}")
+    return input(f"\n  {B}{OURO2}▶  Opção: {R}").strip()
+
+
+def ecra_criar_casino():
+    cabecalho()
+    secao("✦  Registar Novo Casino")
+    nome  = inp("Nome do casino")
+    local = inp("Localização")
+    lic   = inp("Licença")
+    data  = inp("Data de inauguração  (DD-MM-AAAA)")
+    print(f"\n  {DIM}{CINZA}A validar dados...{R}", end="", flush=True)
+    time.sleep(0.6)
+    code, obj = criar_casino(nome, local, lic, data)
+    print("\r" + " " * 30 + "\r", end="")
+    if code == 201:
+        ok("Casino registado com sucesso!")
+        from casino import casinos
+        id_novo = list(casinos.keys())[-1]
+        mostrar_casino(id_novo, obj)
+    else:
+        erro(str(obj))
+    pausa()
+
+def ecra_listar_casinos():
+    cabecalho()
+    secao("🏛️  Casinos Registados")
+    code, obj = listar_casinos()
+    if code == 200:
+        print(f"  {DIM}{CINZA}Total: {len(obj)} casino(s){R}")
+        for id_c, dados in obj.items():
+            mostrar_casino(id_c, dados)
+    else:
+        erro(str(obj))
+    pausa()
+
+def ecra_consultar_casino():
+    cabecalho()
+    secao("🔍  Consultar Casino")
+    id_c  = inp("ID do casino")
+    code, obj = consultar_casino(id_c)
+    if code == 200:
+        mostrar_casino(id_c, obj)
+    else:
+        erro(str(obj))
+    pausa()
+
+def ecra_atualizar_casino():
+    cabecalho()
+    secao("✎  Atualizar Casino")
+    id_c  = inp("ID do casino")
+    print(f"\n  {DIM}{CINZA}(Enter para manter o valor atual){R}\n")
+    nome  = inp("Novo nome")
+    local = inp("Nova localização")
+    lic   = inp("Nova licença")
+    data  = inp("Nova data de inauguração")
+    code, obj = atualizar_casino(
+        id_c,
+        nome  or None, local or None,
+        lic   or None, data  or None
+    )
+    if code == 200:
+        ok("Casino atualizado com sucesso!")
+        mostrar_casino(id_c, obj)
+    else:
+        erro(str(obj))
+    pausa()
+
+def ecra_remover_casino():
+    cabecalho()
+    secao("✖  Remover Casino")
+    id_c    = inp("ID do casino")
+    confirm = inp(f"Confirmar remoção de {id_c}? (s/n)")
+    if confirm.lower() != "s":
+        print(f"\n  {CINZA}Operação cancelada.{R}")
+        pausa()
+        return
+    code, obj = remover_casino(id_c)
+    if code == 200:
+        ok(f"Casino {obj} removido com sucesso.")
+    else:
+        erro(str(obj))
+    pausa()
+
+
+# ══════════════════════════════
 #  MAIN
 # ══════════════════════════════
 
 def main():
     while True:
-        op = menu()
-        if   op == "1": ecra_criar()
-        elif op == "2": ecra_listar()
-        elif op == "3": ecra_consultar()
-        elif op == "4": ecra_atualizar()
-        elif op == "5": ecra_remover()
+        op = menu_principal()
+
+        if op == "1":
+            while True:
+                op_u = menu_utilizador()
+                if   op_u == "1": ecra_criar_utilizador()
+                elif op_u == "2": ecra_listar_utilizadores()
+                elif op_u == "3": ecra_consultar_utilizador()
+                elif op_u == "4": ecra_atualizar_utilizador()
+                elif op_u == "5": ecra_remover_utilizador()
+                elif op_u == "0": break
+                else:
+                    erro("Opção inválida.")
+                    time.sleep(1)
+
+        elif op == "2":
+            while True:
+                op_c = menu_casino()
+                if   op_c == "1": ecra_criar_casino()
+                elif op_c == "2": ecra_listar_casinos()
+                elif op_c == "3": ecra_consultar_casino()
+                elif op_c == "4": ecra_atualizar_casino()
+                elif op_c == "5": ecra_remover_casino()
+                elif op_c == "0": break
+                else:
+                    erro("Opção inválida.")
+                    time.sleep(1)
+
         elif op == "0":
             limpar()
             print()
@@ -205,6 +364,7 @@ def main():
             print(OURO + "  " + "═" * W + R)
             print()
             break
+
         else:
             erro("Opção inválida.")
             time.sleep(1)

@@ -1,146 +1,153 @@
-from utils import *
-import uuid
+# jogo.py
+# CRUD simples para entidade Jogo
+# ==============================
 
-FICHEIRO_JOGOS = "jogos.json"
+import random
+import string
+from utils import (
+    validar_nome,
+    validar_tipo_jogo,
+    validar_aposta
+)
+from casino import casinos
 
 jogos = {}
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  PERSISTÊNCIA
-# ══════════════════════════════════════════════════════════════════════════════
-
-def guardar_jogos():
-    with open(FICHEIRO_JOGOS, "w", encoding="utf-8") as f:
-        json.dump(jogos, f, ensure_ascii=False, indent=2)
-
-def carregar_jogos():
-    global jogos
-    if os.path.exists(FICHEIRO_JOGOS):
-        with open(FICHEIRO_JOGOS, "r", encoding="utf-8") as f:
-            jogos = json.load(f)
-
-carregar_jogos()
+def gerar_id_jogo():
+    """Gera ID no formato JG-XXXXXXXX"""
+    caracteres = string.ascii_uppercase + string.digits
+    codigo = ''.join(random.choices(caracteres, k=8))
+    return f"JG-{codigo}"
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  VALIDAÇÕES INTERNAS
-# ══════════════════════════════════════════════════════════════════════════════
+# CREATE
+def criar_jogo(nome, tipo, aposta_minima, aposta_maxima, id_casino):
+    # Validar nome
+    ok, res = validar_nome(nome)
+    if not ok:
+        return 500, res
+    nome = res
 
-TIPOS_VALIDOS = {"carta", "roleta", "slot"}
-
-def _validar_nome_jogo(nome):
-    nome = nome.strip()
-    if not nome:
-        return False, "Nome não pode estar vazio."
-    if ofensivo(nome):
-        return False, "Nome contém termos proibidos."
+    # Capitalizar nome automaticamente
     nome = nome.title()
-    return True, nome
 
-def _validar_tipo(tipo):
-    tipo = tipo.strip().lower()
-    if tipo not in TIPOS_VALIDOS:
-        return False, f"Tipo inválido. Valores aceites: {', '.join(TIPOS_VALIDOS)}."
-    return True, tipo
+    # Validar tipo
+    ok, res = validar_tipo_jogo(tipo)
+    if not ok:
+        return 500, res
+    tipo = res
 
-def _validar_apostas(aposta_minima, aposta_maxima):
+    # Validar aposta mínima (>0)
     try:
-        aposta_minima = float(str(aposta_minima).replace(',', '.'))
-        aposta_maxima = float(str(aposta_maxima).replace(',', '.'))
-    except Exception:
-        return False, "Apostas devem ser valores numéricos."
-    if aposta_minima <= 0:
-        return False, "Aposta mínima deve ser maior que 0."
-    if aposta_maxima <= aposta_minima:
-        return False, "Aposta máxima deve ser maior que a aposta mínima."
-    return True, (aposta_minima, aposta_maxima)
+        aposta_minima = float(aposta_minima)
+        if aposta_minima <= 0:
+            return 500, "Aposta mínima deve ser maior que 0."
+    except (ValueError, TypeError):
+        return 500, "Aposta mínima inválida."
 
-def _gerar_id_jogo():
-    return "JG-" + uuid.uuid4().hex[:8].upper()
+    # Validar aposta máxima (> aposta_minima)
+    try:
+        aposta_maxima = float(aposta_maxima)
+        if aposta_maxima <= aposta_minima:
+            return 500, "Aposta máxima deve ser maior que a aposta mínima."
+    except (ValueError, TypeError):
+        return 500, "Aposta máxima inválida."
 
+    # Validar se casino existe
+    if id_casino not in casinos:
+        return 500, f"Casino com ID {id_casino} não encontrado."
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  CRUD
-# ══════════════════════════════════════════════════════════════════════════════
-
-def criar_jogo(nome, tipo, aposta_minima, aposta_maxima):
-    ok, nome = _validar_nome_jogo(nome)
-    if not ok:
-        return 500, nome
-
-    ok, tipo = _validar_tipo(tipo)
-    if not ok:
-        return 500, tipo
-
-    ok, resultado = _validar_apostas(aposta_minima, aposta_maxima)
-    if not ok:
-        return 500, resultado
-    aposta_minima, aposta_maxima = resultado
-
-    id_jogo = _gerar_id_jogo()
-    while id_jogo in jogos:
-        id_jogo = _gerar_id_jogo()
-
-    jogos[id_jogo] = {
-        "id_jogo":        id_jogo,
-        "nome":           nome,
-        "tipo":           tipo,
-        "aposta_minima":  aposta_minima,
-        "aposta_maxima":  aposta_maxima,
+    # Criar jogo
+    id_jogo = gerar_id_jogo()
+    jogo = {
+        "id_jogo": id_jogo,
+        "nome": nome,
+        "tipo": tipo,
+        "aposta_minima": round(aposta_minima, 2),
+        "aposta_maxima": round(aposta_maxima, 2),
+        "id_casino": id_casino
     }
+    jogos[id_jogo] = jogo
+    return 201, jogo
 
-    guardar_jogos()
-    return 201, jogos[id_jogo]
 
-
+# READ (listar todos)
 def listar_jogos():
     if not jogos:
-        return 404, "Sem jogos."
-    return 200, list(jogos.values())
+        return 404, "Sem jogos"
+    return 200, jogos
 
 
+# READ (consultar individual)
 def consultar_jogo(id_jogo):
     if id_jogo not in jogos:
-        return 404, "Jogo não encontrado."
+        return 404, "Jogo não encontrado"
     return 200, jogos[id_jogo]
 
 
-def atualizar_jogo(id_jogo, **campos):
+# READ (listar jogos por casino)
+def listar_jogos_por_casino(id_casino):
+    if id_casino not in casinos:
+        return 404, "Casino não encontrado"
+
+    jogos_casino = {id_j: j for id_j, j in jogos.items() if j["id_casino"] == id_casino}
+
+    if not jogos_casino:
+        return 404, "Sem jogos para este casino"
+    return 200, jogos_casino
+
+
+# UPDATE
+def atualizar_jogo(id_jogo, nome=None, tipo=None, aposta_minima=None, aposta_maxima=None, id_casino=None):
     if id_jogo not in jogos:
-        return 404, "Jogo não encontrado."
+        return 404, "Jogo não encontrado"
 
-    jogo = jogos[id_jogo].copy()
-
-    if "nome" in campos:
-        ok, nome = _validar_nome_jogo(campos["nome"])
+    if nome is not None:
+        ok, res = validar_nome(nome)
         if not ok:
-            return 500, nome
-        jogo["nome"] = nome
+            return 500, res
+        jogos[id_jogo]["nome"] = res.title()
 
-    if "tipo" in campos:
-        ok, tipo = _validar_tipo(campos["tipo"])
+    if tipo is not None:
+        ok, res = validar_tipo_jogo(tipo)
         if not ok:
-            return 500, tipo
-        jogo["tipo"] = tipo
+            return 500, res
+        jogos[id_jogo]["tipo"] = res
 
-    aposta_minima = campos.get("aposta_minima", jogo["aposta_minima"])
-    aposta_maxima = campos.get("aposta_maxima", jogo["aposta_maxima"])
+    if aposta_minima is not None:
+        try:
+            aposta_minima = float(aposta_minima)
+            if aposta_minima <= 0:
+                return 500, "Aposta mínima deve ser maior que 0."
+            jogos[id_jogo]["aposta_minima"] = round(aposta_minima, 2)
+        except (ValueError, TypeError):
+            return 500, "Aposta mínima inválida."
 
-    if "aposta_minima" in campos or "aposta_maxima" in campos:
-        ok, resultado = _validar_apostas(aposta_minima, aposta_maxima)
-        if not ok:
-            return 500, resultado
-        jogo["aposta_minima"], jogo["aposta_maxima"] = resultado
+        # Verificar se aposta_maxima ainda é > aposta_minima
+        if jogos[id_jogo]["aposta_maxima"] <= jogos[id_jogo]["aposta_minima"]:
+            return 500, "Aposta máxima deve ser maior que a aposta mínima."
 
-    jogos[id_jogo] = jogo
-    guardar_jogos()
+    if aposta_maxima is not None:
+        try:
+            aposta_maxima = float(aposta_maxima)
+            if aposta_maxima <= jogos[id_jogo]["aposta_minima"]:
+                return 500, "Aposta máxima deve ser maior que a aposta mínima."
+            jogos[id_jogo]["aposta_maxima"] = round(aposta_maxima, 2)
+        except (ValueError, TypeError):
+            return 500, "Aposta máxima inválida."
+
+    if id_casino is not None:
+        if id_casino not in casinos:
+            return 500, f"Casino com ID {id_casino} não encontrado."
+        jogos[id_jogo]["id_casino"] = id_casino
+
     return 200, jogos[id_jogo]
 
 
+# DELETE
 def remover_jogo(id_jogo):
     if id_jogo not in jogos:
-        return 404, "Jogo não encontrado."
+        return 404, "Jogo não encontrado"
     del jogos[id_jogo]
-    guardar_jogos()
-    return 200, f"Jogo {id_jogo} removido com sucesso."
+    return 200, id_jogo

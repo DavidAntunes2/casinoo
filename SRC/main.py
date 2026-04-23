@@ -1,373 +1,585 @@
-# ==============================
-# main.py
-# menu terminal para testar CRUD
-# ==============================
+import os
+import time
 
-import os, time
-from utilizador import (
-    criar_utilizador_casino,
-    listar_utilizadores_casino,
-    consultar_utilizador_casino,
-    atualizar_utilizador_casino,
-    remover_utilizador_casino
-)
-from casino import (
-    criar_casino,
-    listar_casinos,
-    consultar_casino,
-    atualizar_casino,
-    remover_casino
-)
+# --- Módulos ---
+from utilizador import *
+from casino import *
+from jogo import *
+from transacao import *
 
-# ══════════════════════════════
-#  CORES ANSI
-# ══════════════════════════════
-R   = "\033[0m"
-B   = "\033[1m"
-DIM = "\033[2m"
+# ══════════════════════ CORES E ESTILO ══════════════════════
+R = "\033[0m"  # Reset
+B = "\033[1m"  # Bold
+D = "\033[2m"  # Dim
 
-OURO   = "\033[38;5;220m"
-OURO2  = "\033[38;5;178m"
-CREME  = "\033[38;5;230m"
-VERDE  = "\033[38;5;40m"
-VERM   = "\033[38;5;160m"
-CINZA  = "\033[38;5;244m"
-CINZA2 = "\033[38;5;238m"
-ROXO   = "\033[38;5;135m"
-AZUL   = "\033[38;5;75m"
+# Cores principais
+OURO = "\033[38;5;220m"
+OURO2 = "\033[38;5;178m"
+CREME = "\033[38;5;187m"
+CREME_CLARO = "\033[38;5;230m"
 
-BG_VERDE = "\033[48;5;22m"
-BG_VERM  = "\033[48;5;88m"
-BG_OURO  = "\033[48;5;136m"
+# Cores de status
+VERMELHO = "\033[38;5;196m"
+VERDE = "\033[38;5;82m"
+AZUL = "\033[38;5;39m"
+AMARELO = "\033[38;5;226m"
+CIANO = "\033[38;5;51m"
+MAGENTA = "\033[38;5;201m"
 
-W = 52
+# Cores neutras
+CINZA = "\033[38;5;245m"
+CINZA_ESCURO = "\033[38;5;240m"
+BRANCO = "\033[38;5;255m"
+
+W = 54  # Largura da caixa
+
 
 def limpar():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-def ok(msg):
-    print(f"\n  {B}{BG_VERDE}{CREME} ✔ {R}{B}{VERDE} {msg}{R}")
 
-def erro(msg):
-    print(f"\n  {B}{BG_VERM}{CREME} ✖ {R}{B}{VERM} {msg}{R}")
-
-def inp(label):
-    return input(f"  {OURO2}{B}▶  {label}: {R}")
-
-def pausa():
-    print()
-    input(f"  {DIM}{CINZA}Pressione ENTER para continuar...{R}")
-
-def cabecalho():
+def imprimir_cabecalho(titulo, sub_titulo=None):
     limpar()
+    print(f"\n{OURO}{B}  ╔{'═' * W}╗{R}")
+
+    espaco_titulo = W - len(titulo)
+    esquerda = espaco_titulo // 2
+    direita = espaco_titulo - esquerda
+    print(f"{OURO}{B}  ║{R}{CREME_CLARO}{B}{' ' * esquerda}{titulo}{' ' * direita}{R}{OURO}{B}║{R}")
+
+    if sub_titulo:
+        espaco_sub = W - len(sub_titulo)
+        esquerda_sub = espaco_sub // 2
+        direita_sub = espaco_sub - esquerda_sub
+        print(f"{OURO}{B}  ║{R}{CINZA}{' ' * esquerda_sub}{sub_titulo}{' ' * direita_sub}{R}{OURO}{B}║{R}")
+        print(f"{OURO}{B}  ╠{'═' * W}╣{R}")
+
+    print(f"{OURO}{B}  ╚{'═' * W}╝{R}\n")
+
+
+def imprimir_menu_item(num, texto, cor_num=OURO2, cor_texto=CREME):
+    print(f"  {cor_num}{B}[{num}]{R} {cor_texto}{texto}{R}")
+
+
+def mensagem_erro(msg):
+    """Mensagem de erro com caixa bonita"""
     print()
-    print(OURO + "  ╔" + "═" * W + "╗" + R)
-    titulo = "♠  ROYAL CASINO  —  Gestão de Membros  ♠"
-    pad = (W - len(titulo)) // 2
-    print(OURO + "  ║" + " " * pad + B + CREME + titulo + R + OURO + " " * (W - pad - len(titulo)) + "║" + R)
-    print(OURO + "  ╚" + "═" * W + "╝" + R)
+    print(f"  {VERMELHO}{B}┌{'─' * (len(msg) + 6)}┐{R}")
+    print(f"  {VERMELHO}{B}│{R}  {VERMELHO}{B}✘{R} {VERMELHO}{msg}{R}  {VERMELHO}{B}│{R}")
+    print(f"  {VERMELHO}{B}└{'─' * (len(msg) + 6)}┘{R}")
+    time.sleep(1.5)
+
+
+def mensagem_sucesso(msg):
+    """Mensagem de sucesso com caixa bonita"""
     print()
+    print(f"  {VERDE}{B}┌{'─' * (len(msg) + 6)}┐{R}")
+    print(f"  {VERDE}{B}│{R}  {VERDE}{B}✔{R} {VERDE}{msg}{R}  {VERDE}{B}│{R}")
+    print(f"  {VERDE}{B}└{'─' * (len(msg) + 6)}┘{R}")
+    time.sleep(1.5)
 
-def secao(titulo):
+
+def mensagem_info(msg):
+    """Mensagem informativa com caixa bonita"""
     print()
-    print(f"  {OURO2}{'─' * W}{R}")
-    print(f"  {B}{OURO}  {titulo}{R}")
-    print(f"  {OURO2}{'─' * W}{R}")
+    print(f"  {AZUL}{B}┌{'─' * (len(msg) + 6)}┐{R}")
+    print(f"  {AZUL}{B}│{R}  {AZUL}{B}ℹ{R} {AZUL}{msg}{R}  {AZUL}{B}│{R}")
+    print(f"  {AZUL}{B}└{'─' * (len(msg) + 6)}┘{R}")
+    time.sleep(1.5)
+
+
+def mensagem_aviso(msg):
+    """Mensagem de aviso com caixa bonita"""
     print()
-
-def mostrar_utilizador(id_uc, dados):
-    print(f"  {CINZA2}{'· ' * (W // 2)}{R}")
-    print(f"  {B}{OURO}◆ {id_uc}{R}")
-    print(f"  {CINZA}Nome  {CINZA2}{'·' * 10}{R}  {CREME}{dados['nome']}{R}")
-    print(f"  {CINZA}Email {CINZA2}{'·' * 10}{R}  {ROXO}{dados['email']}{R}")
-    print(f"  {CINZA}Tipo  {CINZA2}{'·' * 10}{R}  {OURO2}{dados['tipo_conta']}{R}")
-    print(f"  {CINZA}Nasc. {CINZA2}{'·' * 10}{R}  {CREME}{dados['data_nascimento']}{R}")
-    print(f"  {CINZA}NIF   {CINZA2}{'·' * 10}{R}  {CINZA}{dados['nif']}{R}")
-    print(f"  {CINZA}IBAN  {CINZA2}{'·' * 10}{R}  {CINZA}{dados['iban']}{R}")
-
-def mostrar_casino(id_c, dados):
-    print(f"  {CINZA2}{'· ' * (W // 2)}{R}")
-    print(f"  {B}{AZUL}◆ {id_c}{R}")
-    print(f"  {CINZA}Nome        {CINZA2}{'·' * 6}{R}  {CREME}{dados['nome']}{R}")
-    print(f"  {CINZA}Localização {CINZA2}{'·' * 6}{R}  {OURO2}{dados['localizacao']}{R}")
-    print(f"  {CINZA}Licença     {CINZA2}{'·' * 6}{R}  {ROXO}{dados['licenca']}{R}")
-    print(f"  {CINZA}Inauguração {CINZA2}{'·' * 6}{R}  {CREME}{dados['data_inauguracao']}{R}")
+    print(f"  {AMARELO}{B}┌{'─' * (len(msg) + 6)}┐{R}")
+    print(f"  {AMARELO}{B}│{R}  {AMARELO}{B}⚠{R} {AMARELO}{msg}{R}  {AMARELO}{B}│{R}")
+    print(f"  {AMARELO}{B}└{'─' * (len(msg) + 6)}┘{R}")
+    time.sleep(1.5)
 
 
-# ══════════════════════════════
-#  MENU PRINCIPAL
-# ══════════════════════════════
+def mensagem_confirmacao(msg):
+    """Mensagem de confirmação com caixa bonita"""
+    print()
+    print(f"  {MAGENTA}{B}┌{'─' * (len(msg) + 6)}┐{R}")
+    print(f"  {MAGENTA}{B}│{R}  {MAGENTA}{B}?{R} {MAGENTA}{msg}{R}  {MAGENTA}{B}│{R}")
+    print(f"  {MAGENTA}{B}└{'─' * (len(msg) + 6)}┘{R}")
+
+
+def aguardar_enter():
+    input(f"\n  {CINZA}{B}└─{R} {CINZA}Prima Enter para continuar...{R}")
+
+
+def mostrar_caixa_info(titulo, linhas):
+    """Mostra informações dentro de uma caixa bonita"""
+    max_len = max(len(titulo) + 4, max(len(str(l)) for l in linhas) + 4)
+    max_len = min(max_len, 60)
+
+    print(f"\n  {OURO}{B}┌{'─' * (max_len)}┐{R}")
+    print(f"  {OURO}{B}│{R} {CREME_CLARO}{B}{titulo.center(max_len - 2)}{R} {OURO}{B}│{R}")
+    print(f"  {OURO}{B}├{'─' * (max_len)}┤{R}")
+
+    for linha in linhas:
+        linha_str = str(linha)
+        print(f"  {OURO}{B}│{R} {CREME}{linha_str.ljust(max_len - 2)}{R} {OURO}{B}│{R}")
+
+    print(f"  {OURO}{B}└{'─' * (max_len)}┘{R}")
+
+
+def mostrar_caixa_lista(titulo, itens):
+    """Mostra uma lista dentro de uma caixa bonita"""
+    if not itens:
+        mensagem_info("Nenhum item encontrado")
+        return
+
+    max_len = max(len(titulo) + 4, max(len(f"ID: {k} - {v.get('nome', '')}") for k, v in itens.items()) + 4)
+    max_len = min(max_len, 70)
+
+    print(f"\n  {OURO}{B}┌{'─' * (max_len)}┐{R}")
+    print(f"  {OURO}{B}│{R} {CREME_CLARO}{B}{titulo.center(max_len - 2)}{R} {OURO}{B}│{R}")
+    print(f"  {OURO}{B}├{'─' * (max_len)}┤{R}")
+
+    for id_item, info in itens.items():
+        linha = f"{OURO}{B}ID:{R} {id_item}  {CREME}{info.get('nome', '')}{R}"
+        if 'saldo' in info:
+            linha += f"  {VERDE}💰 €{info['saldo']:,.2f}{R}"
+        print(f"  {OURO}{B}│{R} {linha.ljust(max_len - 2)} {OURO}{B}│{R}")
+
+    print(f"  {OURO}{B}└{'─' * (max_len)}┘{R}")
+
+
+def mostrar_caixa_detalhe(entidade, dados):
+    """Mostra detalhes de uma entidade numa caixa bonita"""
+    linhas = []
+    for chave, valor in dados.items():
+        if chave == 'saldo':
+            linhas.append(f"{VERDE}💰 {chave.upper()}:{R} €{valor:,.2f}")
+        else:
+            chave_formatada = chave.replace('_', ' ').title()
+            linhas.append(f"{CREME}{chave_formatada}:{R} {valor}")
+
+    mostrar_caixa_info(f"📋 DETALHES DO {entidade.upper()}", linhas)
+
+
+def mostrar_caixa_menu(titulo, opcoes):
+    """Mostra um menu dentro de uma caixa bonita"""
+    max_len = max(len(titulo) + 4, max(len(f"[{k}] {v}") for k, v in opcoes.items()) + 4)
+    max_len = min(max_len, 60)
+
+    print(f"\n  {OURO}{B}┌{'─' * (max_len)}┐{R}")
+    print(f"  {OURO}{B}│{R} {CREME_CLARO}{B}{titulo.center(max_len - 2)}{R} {OURO}{B}│{R}")
+    print(f"  {OURO}{B}├{'─' * (max_len)}┤{R}")
+
+    for codigo, descricao in opcoes.items():
+        print(f"  {OURO}{B}│{R}   {OURO2}{B}[{codigo}]{R} {CREME}{descricao.ljust(max_len - 8)}{R} {OURO}{B}│{R}")
+
+    print(f"  {OURO}{B}└{'─' * (max_len)}┘{R}")
+
+
+# ══════════════════════ MENU PRINCIPAL ══════════════════════
 
 def menu_principal():
-    cabecalho()
-    print(f"  {DIM}{CINZA}Escolha uma área:{R}")
-    print()
-    print(f"  {B}{OURO}[1]{R}  {OURO2}Gestão de Utilizadores{R}")
-    print(f"  {B}{OURO}[2]{R}  {AZUL}Gestão de Casinos{R}")
-    print(f"  {B}{OURO}[0]{R}  {CINZA}Sair{R}")
-    print()
-    print(f"  {OURO2}{'─' * W}{R}")
-    return input(f"\n  {B}{OURO2}▶  Opção: {R}").strip()
+    imprimir_cabecalho("♠ ROYAL CASINO ♠", "Sistema de Gestão Integrado")
+
+    opcoes = {
+        "1": "👥 Gestão de Utilizadores",
+        "2": "🏢 Gestão de Casinos",
+        "3": "🎮 Gestão de Jogos",
+        "4": "💰 Gestão de Transações",
+        "0": "🚪 Sair do Sistema"
+    }
+
+    mostrar_caixa_menu("MENU PRINCIPAL", opcoes)
+
+    print(f"\n  {OURO}{B}▶{R} {CREME_CLARO}ESCOLHA UMA OPÇÃO:{R} ", end="")
+    return input().strip()
 
 
-# ══════════════════════════════
-#  MENU UTILIZADOR
-# ══════════════════════════════
+# ══════════════════════ GESTÃO DE UTILIZADORES ══════════════════════
 
-def menu_utilizador():
-    cabecalho()
-    print(f"  {DIM}{CINZA}Gestão de Utilizadores — Escolha uma operação:{R}")
-    print()
-    ops = [
-        ("1", "Criar utilizador",     VERDE),
-        ("2", "Listar utilizadores",  OURO2),
-        ("3", "Consultar utilizador", OURO2),
-        ("4", "Atualizar utilizador", OURO2),
-        ("5", "Remover utilizador",   VERM),
-        ("0", "Voltar",               CINZA),
-    ]
-    for num, texto, cor in ops:
-        print(f"  {B}{OURO}[{num}]{R}  {cor}{texto}{R}")
-    print()
-    print(f"  {OURO2}{'─' * W}{R}")
-    return input(f"\n  {B}{OURO2}▶  Opção: {R}").strip()
+def gestao_utilizadores():
+    while True:
+        imprimir_cabecalho("👥 GESTÃO DE UTILIZADORES", "Operações CRUD")
 
+        opcoes = {
+            "1": "📝 Criar Utilizador",
+            "2": "📋 Listar Utilizadores",
+            "3": "🔍 Consultar Utilizador",
+            "4": "✏️ Atualizar Utilizador",
+            "5": "🗑️ Remover Utilizador",
+            "0": "◀ Voltar ao Menu Principal"
+        }
 
-def ecra_criar_utilizador():
-    cabecalho()
-    secao("✦  Registar Novo Membro")
-    nome  = inp("Nome completo")
-    email = inp("Email")
-    tipo  = inp("Tipo de conta  (standard / vip / high roller)")
-    nasc  = inp("Data nascimento  (DD-MM-AAAA)")
-    nif   = inp("NIF  (9 dígitos)")
-    iban  = inp("IBAN  (PT + 23 dígitos)")
-    print(f"\n  {DIM}{CINZA}A validar dados...{R}", end="", flush=True)
-    time.sleep(0.6)
-    code, obj = criar_utilizador_casino(nome, email, tipo, nasc, nif, iban)
-    print("\r" + " " * 30 + "\r", end="")
-    if code == 201:
-        ok("Membro registado com sucesso!")
-        from utilizador import utilizadores_casino
-        id_novo = list(utilizadores_casino.keys())[-1]
-        mostrar_utilizador(id_novo, obj)
-    else:
-        erro(str(obj))
-    pausa()
+        mostrar_caixa_menu("SUB-MENU", opcoes)
 
-def ecra_listar_utilizadores():
-    cabecalho()
-    secao("♠  Membros Registados")
-    code, obj = listar_utilizadores_casino()
-    if code == 200:
-        print(f"  {DIM}{CINZA}Total: {len(obj)} membro(s){R}")
-        for id_uc, dados in obj.items():
-            mostrar_utilizador(id_uc, dados)
-    else:
-        erro(str(obj))
-    pausa()
+        op = input(f"\n  {OURO}{B}▶ OPÇÃO:{R} ").strip()
 
-def ecra_consultar_utilizador():
-    cabecalho()
-    secao("🔍  Consultar Membro")
-    id_uc = inp("ID do utilizador")
-    code, obj = consultar_utilizador_casino(id_uc)
-    if code == 200:
-        mostrar_utilizador(id_uc, obj)
-    else:
-        erro(str(obj))
-    pausa()
+        if op == "1":
+            print()
+            mensagem_info("Preencha os dados do novo utilizador")
+            print()
+            nome = input(f"  {CREME}{B}➤{R} {CREME}Nome completo:{R} ")
+            email = input(f"  {CREME}{B}➤{R} {CREME}Email:{R} ")
+            tipo_conta = input(f"  {CREME}{B}➤{R} {CREME}Tipo conta (standard/vip/high roller):{R} ")
+            data_nasc = input(f"  {CREME}{B}➤{R} {CREME}Data nascimento (DD-MM-AAAA):{R} ")
+            nif = input(f"  {CREME}{B}➤{R} {CREME}NIF:{R} ")
+            iban = input(f"  {CREME}{B}➤{R} {CREME}IBAN:{R} ")
 
-def ecra_atualizar_utilizador():
-    cabecalho()
-    secao("✎  Atualizar Membro")
-    id_uc = inp("ID do utilizador")
-    print(f"\n  {DIM}{CINZA}(Enter para manter o valor atual){R}\n")
-    nome  = inp("Novo nome")
-    email = inp("Novo email")
-    tipo  = inp("Novo tipo de conta")
-    data  = inp("Nova data nascimento")
-    nif   = inp("Novo NIF")
-    iban  = inp("Novo IBAN")
-    code, obj = atualizar_utilizador_casino(
-        id_uc,
-        nome  or None, email or None, tipo or None,
-        data  or None, nif   or None, iban or None
-    )
-    if code == 200:
-        ok("Membro atualizado com sucesso!")
-        mostrar_utilizador(id_uc, obj)
-    else:
-        erro(str(obj))
-    pausa()
+            status, resultado = criar_utilizador_casino(nome, email, tipo_conta, data_nasc, nif, iban)
+            if status == 201:
+                mensagem_sucesso(f"✅ Utilizador criado com sucesso!")
+            else:
+                mensagem_erro(f"❌ {resultado}")
+            aguardar_enter()
 
-def ecra_remover_utilizador():
-    cabecalho()
-    secao("✖  Remover Membro")
-    id_uc   = inp("ID do utilizador")
-    confirm = inp(f"Confirmar remoção de {id_uc}? (s/n)")
-    if confirm.lower() != "s":
-        print(f"\n  {CINZA}Operação cancelada.{R}")
-        pausa()
-        return
-    code, obj = remover_utilizador_casino(id_uc)
-    if code == 200:
-        ok(f"Membro {obj} removido com sucesso.")
-    else:
-        erro(str(obj))
-    pausa()
+        elif op == "2":
+            status, dados = listar_utilizadores_casino()
+            if status == 200:
+                mostrar_caixa_lista("📋 LISTA DE UTILIZADORES", dados)
+            else:
+                mensagem_info("📭 Nenhum utilizador encontrado")
+            aguardar_enter()
+
+        elif op == "3":
+            id_u = input(f"\n  {CREME}{B}➤{R} {CREME}ID do utilizador:{R} ")
+            status, dados = consultar_utilizador_casino(id_u)
+            if status == 200:
+                mostrar_caixa_detalhe("UTILIZADOR", dados)
+            else:
+                mensagem_erro(f"❌ {dados}")
+            aguardar_enter()
+
+        elif op == "4":
+            id_u = input(f"\n  {CREME}{B}➤{R} {CREME}ID do utilizador:{R} ")
+            mensagem_aviso("Deixe em branco para não alterar")
+            print()
+            nome = input(f"  {CREME}{B}➤{R} {CREME}Novo nome:{R} ") or None
+            email = input(f"  {CREME}{B}➤{R} {CREME}Novo email:{R} ") or None
+            tipo = input(f"  {CREME}{B}➤{R} {CREME}Novo tipo:{R} ") or None
+            data = input(f"  {CREME}{B}➤{R} {CREME}Nova data nasc:{R} ") or None
+            nif = input(f"  {CREME}{B}➤{R} {CREME}Novo NIF:{R} ") or None
+            iban = input(f"  {CREME}{B}➤{R} {CREME}Novo IBAN:{R} ") or None
+
+            status, resultado = atualizar_utilizador_casino(id_u, nome, email, tipo, data, nif, iban)
+            if status == 200:
+                mensagem_sucesso("✅ Utilizador atualizado com sucesso!")
+            else:
+                mensagem_erro(f"❌ {resultado}")
+            aguardar_enter()
+
+        elif op == "5":
+            id_u = input(f"\n  {CREME}{B}➤{R} {CREME}ID do utilizador:{R} ")
+            mensagem_confirmacao("⚠️ ATENÇÃO: Esta ação é irreversível!")
+            confirm = input(f"\n  {VERMELHO}{B}➤{R} {VERMELHO}Confirmar remoção? (s/n):{R} ").lower()
+            if confirm == 's':
+                status, resultado = remover_utilizador_casino(id_u)
+                if status == 200:
+                    mensagem_sucesso("✅ Utilizador removido com sucesso!")
+                else:
+                    mensagem_erro(f"❌ {resultado}")
+            else:
+                mensagem_info("Operação cancelada")
+            aguardar_enter()
+
+        elif op == "0":
+            break
+        else:
+            mensagem_erro("❌ Opção inválida! Tente novamente.")
 
 
-# ══════════════════════════════
-#  MENU CASINO
-# ══════════════════════════════
+# ══════════════════════ GESTÃO DE CASINOS ══════════════════════
 
-def menu_casino():
-    cabecalho()
-    print(f"  {DIM}{CINZA}Gestão de Casinos — Escolha uma operação:{R}")
-    print()
-    ops = [
-        ("1", "Criar casino",     VERDE),
-        ("2", "Listar casinos",   AZUL),
-        ("3", "Consultar casino", AZUL),
-        ("4", "Atualizar casino", AZUL),
-        ("5", "Remover casino",   VERM),
-        ("0", "Voltar",           CINZA),
-    ]
-    for num, texto, cor in ops:
-        print(f"  {B}{OURO}[{num}]{R}  {cor}{texto}{R}")
-    print()
-    print(f"  {OURO2}{'─' * W}{R}")
-    return input(f"\n  {B}{OURO2}▶  Opção: {R}").strip()
+def gestao_casinos():
+    while True:
+        imprimir_cabecalho("🏢 GESTÃO DE CASINOS", "Operações CRUD")
 
+        opcoes = {
+            "1": "📝 Criar Casino",
+            "2": "📋 Listar Casinos",
+            "3": "🔍 Consultar Casino",
+            "4": "✏️ Atualizar Casino",
+            "5": "🗑️ Remover Casino",
+            "0": "◀ Voltar ao Menu Principal"
+        }
 
-def ecra_criar_casino():
-    cabecalho()
-    secao("✦  Registar Novo Casino")
-    nome  = inp("Nome do casino")
-    local = inp("Localização")
-    lic   = inp("Licença")
-    data  = inp("Data de inauguração  (DD-MM-AAAA)")
-    print(f"\n  {DIM}{CINZA}A validar dados...{R}", end="", flush=True)
-    time.sleep(0.6)
-    code, obj = criar_casino(nome, local, lic, data)
-    print("\r" + " " * 30 + "\r", end="")
-    if code == 201:
-        ok("Casino registado com sucesso!")
-        from casino import casinos
-        id_novo = list(casinos.keys())[-1]
-        mostrar_casino(id_novo, obj)
-    else:
-        erro(str(obj))
-    pausa()
+        mostrar_caixa_menu("SUB-MENU", opcoes)
 
-def ecra_listar_casinos():
-    cabecalho()
-    secao("🏛️  Casinos Registados")
-    code, obj = listar_casinos()
-    if code == 200:
-        print(f"  {DIM}{CINZA}Total: {len(obj)} casino(s){R}")
-        for id_c, dados in obj.items():
-            mostrar_casino(id_c, dados)
-    else:
-        erro(str(obj))
-    pausa()
+        op = input(f"\n  {OURO}{B}▶ OPÇÃO:{R} ").strip()
 
-def ecra_consultar_casino():
-    cabecalho()
-    secao("🔍  Consultar Casino")
-    id_c  = inp("ID do casino")
-    code, obj = consultar_casino(id_c)
-    if code == 200:
-        mostrar_casino(id_c, obj)
-    else:
-        erro(str(obj))
-    pausa()
+        if op == "1":
+            print()
+            mensagem_info("Preencha os dados do novo casino")
+            print()
+            nome = input(f"  {CREME}{B}➤{R} {CREME}Nome do Casino:{R} ")
+            localizacao = input(f"  {CREME}{B}➤{R} {CREME}Localização (cidade, país):{R} ")
+            licenca = input(f"  {CREME}{B}➤{R} {CREME}Nº Licença:{R} ")
+            data_inaug = input(f"  {CREME}{B}➤{R} {CREME}Data inauguração (DD-MM-AAAA):{R} ")
+            saldo = input(f"  {VERDE}{B}➤{R} {VERDE}Saldo inicial do Casino (€):{R} ")
 
-def ecra_atualizar_casino():
-    cabecalho()
-    secao("✎  Atualizar Casino")
-    id_c  = inp("ID do casino")
-    print(f"\n  {DIM}{CINZA}(Enter para manter o valor atual){R}\n")
-    nome  = inp("Novo nome")
-    local = inp("Nova localização")
-    lic   = inp("Nova licença")
-    data  = inp("Nova data de inauguração")
-    code, obj = atualizar_casino(
-        id_c,
-        nome  or None, local or None,
-        lic   or None, data  or None
-    )
-    if code == 200:
-        ok("Casino atualizado com sucesso!")
-        mostrar_casino(id_c, obj)
-    else:
-        erro(str(obj))
-    pausa()
+            status, resultado = criar_casino(nome, localizacao, licenca, data_inaug, saldo)
+            if status == 201:
+                mensagem_sucesso(f"✅ Casino criado com sucesso! Saldo inicial: €{resultado['saldo']:,.2f}")
+            else:
+                mensagem_erro(f"❌ {resultado}")
+            aguardar_enter()
 
-def ecra_remover_casino():
-    cabecalho()
-    secao("✖  Remover Casino")
-    id_c    = inp("ID do casino")
-    confirm = inp(f"Confirmar remoção de {id_c}? (s/n)")
-    if confirm.lower() != "s":
-        print(f"\n  {CINZA}Operação cancelada.{R}")
-        pausa()
-        return
-    code, obj = remover_casino(id_c)
-    if code == 200:
-        ok(f"Casino {obj} removido com sucesso.")
-    else:
-        erro(str(obj))
-    pausa()
+        elif op == "2":
+            status, dados = listar_casinos()
+            if status == 200:
+                mostrar_caixa_lista("📋 LISTA DE CASINOS", dados)
+            else:
+                mensagem_info("📭 Nenhum casino encontrado")
+            aguardar_enter()
+
+        elif op == "3":
+            id_c = input(f"\n  {CREME}{B}➤{R} {CREME}ID do casino:{R} ")
+            status, dados = consultar_casino(id_c)
+            if status == 200:
+                mostrar_caixa_detalhe("CASINO", dados)
+            else:
+                mensagem_erro(f"❌ {dados}")
+            aguardar_enter()
+
+        elif op == "4":
+            id_c = input(f"\n  {CREME}{B}➤{R} {CREME}ID do casino:{R} ")
+            mensagem_aviso("Deixe em branco para não alterar")
+            print()
+            nome = input(f"  {CREME}{B}➤{R} {CREME}Novo nome:{R} ") or None
+            local = input(f"  {CREME}{B}➤{R} {CREME}Nova localização:{R} ") or None
+            licenca = input(f"  {CREME}{B}➤{R} {CREME}Nova licença:{R} ") or None
+            data = input(f"  {CREME}{B}➤{R} {CREME}Nova data inauguração:{R} ") or None
+            saldo = input(f"  {VERDE}{B}➤{R} {VERDE}Novo saldo (€):{R} ") or None
+
+            status, resultado = atualizar_casino(id_c, nome, local, licenca, data, saldo)
+            if status == 200:
+                mensagem_sucesso("✅ Casino atualizado com sucesso!")
+            else:
+                mensagem_erro(f"❌ {resultado}")
+            aguardar_enter()
+
+        elif op == "5":
+            id_c = input(f"\n  {CREME}{B}➤{R} {CREME}ID do casino:{R} ")
+            mensagem_confirmacao("⚠️ ATENÇÃO: Esta ação é irreversível!")
+            confirm = input(f"\n  {VERMELHO}{B}➤{R} {VERMELHO}Confirmar remoção? (s/n):{R} ").lower()
+            if confirm == 's':
+                status, resultado = remover_casino(id_c)
+                if status == 200:
+                    mensagem_sucesso("✅ Casino removido com sucesso!")
+                else:
+                    mensagem_erro(f"❌ {resultado}")
+            else:
+                mensagem_info("Operação cancelada")
+            aguardar_enter()
+
+        elif op == "0":
+            break
+        else:
+            mensagem_erro("❌ Opção inválida! Tente novamente.")
 
 
-# ══════════════════════════════
-#  MAIN
-# ══════════════════════════════
+# ══════════════════════ GESTÃO DE JOGOS ══════════════════════
+
+def gestao_jogos():
+    while True:
+        imprimir_cabecalho("🎮 GESTÃO DE JOGOS", "Operações CRUD")
+
+        opcoes = {
+            "1": "📝 Criar Jogo",
+            "2": "📋 Listar Jogos",
+            "3": "🔍 Consultar Jogo",
+            "4": "🗑️ Remover Jogo",
+            "0": "◀ Voltar ao Menu Principal"
+        }
+
+        mostrar_caixa_menu("SUB-MENU", opcoes)
+
+        op = input(f"\n  {OURO}{B}▶ OPÇÃO:{R} ").strip()
+
+        if op == "1":
+            print()
+            mensagem_info("Preencha os dados do novo jogo")
+            print()
+            nome = input(f"  {CREME}{B}➤{R} {CREME}Nome do jogo:{R} ")
+            tipo = input(f"  {CREME}{B}➤{R} {CREME}Tipo (carta/roleta/slot):{R} ")
+            aposta_min = input(f"  {CREME}{B}➤{R} {CREME}Aposta mínima (€):{R} ")
+            aposta_max = input(f"  {CREME}{B}➤{R} {CREME}Aposta máxima (€):{R} ")
+
+            status, resultado = criar_jogo(nome, tipo, aposta_min, aposta_max)
+            if status == 201:
+                mensagem_sucesso("✅ Jogo criado com sucesso!")
+            else:
+                mensagem_erro(f"❌ {resultado}")
+            aguardar_enter()
+
+        elif op == "2":
+            status, dados = listar_jogos()
+            if status == 200:
+                # Formatação especial para jogos
+                itens_formatados = {}
+                for id_j, info in dados.items():
+                    icone = "🃏" if info['tipo'] == 'carta' else "🎰" if info['tipo'] == 'slot' else "🎡"
+                    itens_formatados[id_j] = {
+                        'nome': f"{icone} {info['nome']} ({info['tipo']}) - €{info['aposta_minima']}-€{info['aposta_maxima']}"
+                    }
+                mostrar_caixa_lista("📋 LISTA DE JOGOS", itens_formatados)
+            else:
+                mensagem_info("📭 Nenhum jogo encontrado")
+            aguardar_enter()
+
+        elif op == "3":
+            id_j = input(f"\n  {CREME}{B}➤{R} {CREME}ID do jogo:{R} ")
+            status, dados = consultar_jogo(id_j)
+            if status == 200:
+                mostrar_caixa_detalhe("JOGO", dados)
+            else:
+                mensagem_erro(f"❌ {dados}")
+            aguardar_enter()
+
+        elif op == "4":
+            id_j = input(f"\n  {CREME}{B}➤{R} {CREME}ID do jogo:{R} ")
+            mensagem_confirmacao("⚠️ ATENÇÃO: Esta ação é irreversível!")
+            confirm = input(f"\n  {VERMELHO}{B}➤{R} {VERMELHO}Confirmar remoção? (s/n):{R} ").lower()
+            if confirm == 's':
+                status, resultado = remover_jogo(id_j)
+                if status == 200:
+                    mensagem_sucesso("✅ Jogo removido com sucesso!")
+                else:
+                    mensagem_erro(f"❌ {resultado}")
+            else:
+                mensagem_info("Operação cancelada")
+            aguardar_enter()
+
+        elif op == "0":
+            break
+        else:
+            mensagem_erro("❌ Opção inválida! Tente novamente.")
+
+
+# ══════════════════════ GESTÃO DE TRANSAÇÕES ══════════════════════
+
+def gestao_transacoes():
+    while True:
+        imprimir_cabecalho("💰 GESTÃO DE TRANSAÇÕES", "Operações CRUD")
+
+        opcoes = {
+            "1": "📝 Criar Transação",
+            "2": "📋 Listar Transações",
+            "3": "🔍 Consultar Transação",
+            "4": "✏️ Atualizar Transação",
+            "5": "🗑️ Remover Transação",
+            "0": "◀ Voltar ao Menu Principal"
+        }
+
+        mostrar_caixa_menu("SUB-MENU", opcoes)
+
+        op = input(f"\n  {OURO}{B}▶ OPÇÃO:{R} ").strip()
+
+        if op == "1":
+            print()
+            mensagem_info("Preencha os dados da nova transação")
+            print()
+            id_user = input(f"  {CREME}{B}➤{R} {CREME}ID do utilizador:{R} ")
+            tipo = input(f"  {CREME}{B}➤{R} {CREME}Tipo (deposito/levantamento):{R} ")
+            valor = input(f"  {CREME}{B}➤{R} {CREME}Valor (€):{R} ")
+            data = input(f"  {CREME}{B}➤{R} {CREME}Data (DD-MM-AAAA):{R} ")
+
+            status, resultado = criar_transacao(id_user, tipo, valor, data)
+            if status == 201:
+                mensagem_sucesso("✅ Transação criada com sucesso!")
+            else:
+                mensagem_erro(f"❌ {resultado}")
+            aguardar_enter()
+
+        elif op == "2":
+            status, dados = listar_transacoes()
+            if status == 200:
+                # Formatação especial para transações
+                itens_formatados = {}
+                for id_t, info in dados.items():
+                    sinal = "+" if info['tipo'] == 'deposito' else "-"
+                    cor = VERDE if info['tipo'] == 'deposito' else VERMELHO
+                    itens_formatados[id_t] = {
+                        'nome': f"👤 {info['id_utilizador']} | {info['tipo']} | {cor}{sinal}€{info['valor']:.2f}{R} | 📅 {info['data']}"
+                    }
+                mostrar_caixa_lista("📋 LISTA DE TRANSAÇÕES", itens_formatados)
+            else:
+                mensagem_info("📭 Nenhuma transação encontrada")
+            aguardar_enter()
+
+        elif op == "3":
+            id_t = input(f"\n  {CREME}{B}➤{R} {CREME}ID da transação:{R} ")
+            status, dados = consultar_transacao(id_t)
+            if status == 200:
+                mostrar_caixa_detalhe("TRANSAÇÃO", dados)
+            else:
+                mensagem_erro(f"❌ {dados}")
+            aguardar_enter()
+
+        elif op == "4":
+            id_t = input(f"\n  {CREME}{B}➤{R} {CREME}ID da transação:{R} ")
+            mensagem_aviso("Deixe em branco para não alterar")
+            print()
+            tipo = input(f"  {CREME}{B}➤{R} {CREME}Novo tipo (deposito/levantamento):{R} ") or None
+            valor = input(f"  {CREME}{B}➤{R} {CREME}Novo valor (€):{R} ") or None
+            data = input(f"  {CREME}{B}➤{R} {CREME}Nova data (DD-MM-AAAA):{R} ") or None
+
+            kwargs = {}
+            if tipo:
+                kwargs['tipo'] = tipo
+            if valor:
+                kwargs['valor'] = float(valor)
+            if data:
+                kwargs['data'] = data
+
+            status, resultado = atualizar_transacao(id_t, **kwargs)
+            if status == 200:
+                mensagem_sucesso("✅ Transação atualizada com sucesso!")
+            else:
+                mensagem_erro(f"❌ {resultado}")
+            aguardar_enter()
+
+        elif op == "5":
+            id_t = input(f"\n  {CREME}{B}➤{R} {CREME}ID da transação:{R} ")
+            mensagem_confirmacao("⚠️ ATENÇÃO: Esta ação é irreversível!")
+            confirm = input(f"\n  {VERMELHO}{B}➤{R} {VERMELHO}Confirmar remoção? (s/n):{R} ").lower()
+            if confirm == 's':
+                status, resultado = remover_transacao(id_t)
+                if status == 200:
+                    mensagem_sucesso("✅ Transação removida com sucesso!")
+                else:
+                    mensagem_erro(f"❌ {resultado}")
+            else:
+                mensagem_info("Operação cancelada")
+            aguardar_enter()
+
+        elif op == "0":
+            break
+        else:
+            mensagem_erro("❌ Opção inválida! Tente novamente.")
+
+
+# ══════════════════════ LOOP PRINCIPAL ══════════════════════
 
 def main():
     while True:
         op = menu_principal()
 
         if op == "1":
-            while True:
-                op_u = menu_utilizador()
-                if   op_u == "1": ecra_criar_utilizador()
-                elif op_u == "2": ecra_listar_utilizadores()
-                elif op_u == "3": ecra_consultar_utilizador()
-                elif op_u == "4": ecra_atualizar_utilizador()
-                elif op_u == "5": ecra_remover_utilizador()
-                elif op_u == "0": break
-                else:
-                    erro("Opção inválida.")
-                    time.sleep(1)
-
+            gestao_utilizadores()
         elif op == "2":
-            while True:
-                op_c = menu_casino()
-                if   op_c == "1": ecra_criar_casino()
-                elif op_c == "2": ecra_listar_casinos()
-                elif op_c == "3": ecra_consultar_casino()
-                elif op_c == "4": ecra_atualizar_casino()
-                elif op_c == "5": ecra_remover_casino()
-                elif op_c == "0": break
-                else:
-                    erro("Opção inválida.")
-                    time.sleep(1)
-
+            gestao_casinos()
+        elif op == "3":
+            gestao_jogos()
+        elif op == "4":
+            gestao_transacoes()
         elif op == "0":
             limpar()
-            print()
-            print(f"  {B}{OURO}♠  Até à próxima, Membro VIP.  ♠{R}")
-            print()
-            print(OURO + "  " + "═" * W + R)
-            print()
+            print(f"\n  {VERDE}{B}╔{'═' * 45}╗{R}")
+            print(f"  {VERDE}{B}║{R}   {VERDE}{B}✨{R} {B}A encerrar o sistema... Até breve!{R}   {VERDE}{B}║{R}")
+            print(f"  {VERDE}{B}╚{'═' * 45}╝{R}\n")
             break
-
         else:
-            erro("Opção inválida.")
-            time.sleep(1)
+            mensagem_erro("❌ Opção inválida! Tente novamente.")
+
 
 if __name__ == "__main__":
     main()

@@ -5,8 +5,8 @@
 # validações feitas aqui (não no main)
 # ==============================
 
+import uuid
 from utils import (
-    gerar_id_casino,
     validar_nome,
     validar_localizacao,
     validar_licenca,
@@ -15,6 +15,11 @@ from utils import (
 )
 
 casinos = {}
+
+
+def gerar_id_casino():
+    """Gera ID no formato CA-XXXXXXXX"""
+    return "CA-" + str(uuid.uuid4())[:8].upper()
 
 
 # CREATE

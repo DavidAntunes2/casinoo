@@ -1,0 +1,157 @@
+from utils import *
+from utilizador import jogadores
+import uuid
+
+FICHEIRO_TRANSACOES = "transacoes.json"
+
+transacoes = {}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  PERSISTÊNCIA
+# ══════════════════════════════════════════════════════════════════════════════
+
+def guardar_transacoes():
+    with open(FICHEIRO_TRANSACOES, "w", encoding="utf-8") as f:
+        json.dump(transacoes, f, ensure_ascii=False, indent=2)
+
+def carregar_transacoes():
+    global transacoes
+    if os.path.exists(FICHEIRO_TRANSACOES):
+        with open(FICHEIRO_TRANSACOES, "r", encoding="utf-8") as f:
+            transacoes = json.load(f)
+
+carregar_transacoes()
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  VALIDAÇÕES INTERNAS
+# ══════════════════════════════════════════════════════════════════════════════
+
+TIPOS_VALIDOS = {"deposito", "levantamento"}
+
+def _validar_utilizador(id_utilizador):
+    if id_utilizador not in jogadores:
+        return False, f"Utilizador '{id_utilizador}' não encontrado no sistema."
+    return True, id_utilizador
+
+def _validar_tipo_transacao(tipo):
+    tipo = tipo.strip().lower()
+    if tipo not in TIPOS_VALIDOS:
+        return False, f"Tipo inválido. Valores aceites: {', '.join(TIPOS_VALIDOS)}."
+    return True, tipo
+
+def _validar_valor(valor):
+    try:
+        valor = float(str(valor).replace(',', '.'))
+    except Exception:
+        return False, "Valor deve ser numérico."
+    if valor <= 0:
+        return False, "Valor deve ser maior que 0."
+    return True, valor
+
+def _validar_data_transacao(data_str):
+    for fmt in ("%d-%m-%Y", "%Y-%m-%d", "%d/%m/%Y"):
+        try:
+            data = datetime.strptime(data_str.strip(), fmt)
+            if data > datetime.now():
+                return False, "Data não pode ser futura."
+            return True, data.strftime("%d-%m-%Y")
+        except ValueError:
+            continue
+    return False, "Data inválida. Use DD-MM-AAAA, AAAA-MM-DD ou DD/MM/AAAA."
+
+def _gerar_id_transacao():
+    return "TR-" + uuid.uuid4().hex[:8].upper()
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  CRUD
+# ══════════════════════════════════════════════════════════════════════════════
+
+def criar_transacao(id_utilizador, tipo, valor, data):
+    ok, id_utilizador = _validar_utilizador(id_utilizador)
+    if not ok:
+        return 500, id_utilizador
+
+    ok, tipo = _validar_tipo_transacao(tipo)
+    if not ok:
+        return 500, tipo
+
+    ok, valor = _validar_valor(valor)
+    if not ok:
+        return 500, valor
+
+    ok, data = _validar_data_transacao(data)
+    if not ok:
+        return 500, data
+
+    id_transacao = _gerar_id_transacao()
+    while id_transacao in transacoes:
+        id_transacao = _gerar_id_transacao()
+
+    transacoes[id_transacao] = {
+        "id_transacao":  id_transacao,
+        "id_utilizador": id_utilizador,
+        "tipo":          tipo,
+        "valor":         valor,
+        "data":          data,
+    }
+
+    guardar_transacoes()
+    return 201, transacoes[id_transacao]
+
+
+def listar_transacoes():
+    if not transacoes:
+        return 404, "Sem transações."
+    return 200, list(transacoes.values())
+
+
+def consultar_transacao(id_transacao):
+    if id_transacao not in transacoes:
+        return 404, "Transação não encontrada."
+    return 200, transacoes[id_transacao]
+
+
+def atualizar_transacao(id_transacao, **campos):
+    if id_transacao not in transacoes:
+        return 404, "Transação não encontrada."
+
+    t = transacoes[id_transacao].copy()
+
+    if "id_utilizador" in campos:
+        ok, id_utilizador = _validar_utilizador(campos["id_utilizador"])
+        if not ok:
+            return 500, id_utilizador
+        t["id_utilizador"] = id_utilizador
+
+    if "tipo" in campos:
+        ok, tipo = _validar_tipo_transacao(campos["tipo"])
+        if not ok:
+            return 500, tipo
+        t["tipo"] = tipo
+
+    if "valor" in campos:
+        ok, valor = _validar_valor(campos["valor"])
+        if not ok:
+            return 500, valor
+        t["valor"] = valor
+
+    if "data" in campos:
+        ok, data = _validar_data_transacao(campos["data"])
+        if not ok:
+            return 500, data
+        t["data"] = data
+
+    transacoes[id_transacao] = t
+    guardar_transacoes()
+    return 200, transacoes[id_transacao]
+
+
+def remover_transacao(id_transacao):
+    if id_transacao not in transacoes:
+        return 404, "Transação não encontrada."
+    del transacoes[id_transacao]
+    guardar_transacoes()
+    return 200, f"Transação {id_transacao} removida com sucesso."

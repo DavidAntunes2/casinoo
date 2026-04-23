@@ -90,7 +90,7 @@ def validar_data_nascimento(data_str):
                 return False, f"Idade inválida: {idade} anos (máximo 116)."
             if idade < 18:
                 return False, f"Idade insuficiente: {idade} anos (mínimo 18)."
-            return True, idade
+            return True, data_str.strip()
         except ValueError:
             continue
     return False, "Data inválida. Use DD-MM-AAAA, AAAA-MM-DD ou DD/MM/AAAA."
@@ -102,20 +102,33 @@ def validar_tipo_conta(tipo):
     if tipo not in tipos_validos:
         return False, f"Tipo de conta inválido. Escolha: {', '.join(tipos_validos)}."
     return True, tipo
-    def gerar_id_casino():
-    return "CA-" + str(uuid.uuid4())[:8].upper()
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  VALIDAÇÕES PARA CASINO
+# ══════════════════════════════════════════════════════════════════════════════
 
 def validar_localizacao(loc):
     loc = loc.strip()
     if not loc:
         return False, "Localização não pode estar vazia."
+    if len(loc) < 3:
+        return False, "Localização deve ter pelo menos 3 caracteres."
+    if len(loc) > 200:
+        return False, "Localização deve ter no máximo 200 caracteres."
     return True, loc.title()
+
 
 def validar_licenca(lic):
     lic = lic.strip().upper()
     if not lic:
         return False, "Licença não pode estar vazia."
+    if len(lic) < 5:
+        return False, "Licença deve ter pelo menos 5 caracteres."
+    if len(lic) > 50:
+        return False, "Licença deve ter no máximo 50 caracteres."
     return True, lic
+
 
 def validar_data(data_str):
     for fmt in ("%d-%m-%Y", "%Y-%m-%d", "%d/%m/%Y"):
@@ -125,3 +138,16 @@ def validar_data(data_str):
         except ValueError:
             continue
     return False, "Data inválida. Use DD-MM-AAAA, AAAA-MM-DD ou DD/MM/AAAA."
+
+
+def validar_saldo(saldo):
+    """Valida o saldo do casino"""
+    try:
+        saldo = float(saldo)
+        if saldo < 0:
+            return False, "Saldo não pode ser negativo."
+        if saldo > 1000000000:
+            return False, "Saldo muito alto (máx: 1.000.000.000)."
+        return True, round(saldo, 2)
+    except (ValueError, TypeError):
+        return False, "Saldo inválido. Deve ser um número."

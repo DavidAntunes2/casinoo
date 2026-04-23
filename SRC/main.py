@@ -92,6 +92,7 @@ def mostrar_casino(id_c, dados):
     print(f"  {CINZA}Localização {CINZA2}{'·' * 6}{R}  {OURO2}{dados['localizacao']}{R}")
     print(f"  {CINZA}Licença     {CINZA2}{'·' * 6}{R}  {ROXO}{dados['licenca']}{R}")
     print(f"  {CINZA}Inauguração {CINZA2}{'·' * 6}{R}  {CREME}{dados['data_inauguracao']}{R}")
+    print(f"  {CINZA}Saldo       {CINZA2}{'·' * 6}{R}  {VERDE}€{dados['saldo']:,.2f}{R}")
 
 
 # ══════════════════════════════
@@ -248,9 +249,10 @@ def ecra_criar_casino():
     local = inp("Localização")
     lic   = inp("Licença")
     data  = inp("Data de inauguração  (DD-MM-AAAA)")
+    saldo = inp("Saldo inicial do casino  (€)")  # ← ADICIONADO
     print(f"\n  {DIM}{CINZA}A validar dados...{R}", end="", flush=True)
     time.sleep(0.6)
-    code, obj = criar_casino(nome, local, lic, data)
+    code, obj = criar_casino(nome, local, lic, data, saldo)  # ← 5 ARGUMENTOS
     print("\r" + " " * 30 + "\r", end="")
     if code == 201:
         ok("Casino registado com sucesso!")
@@ -293,10 +295,12 @@ def ecra_atualizar_casino():
     local = inp("Nova localização")
     lic   = inp("Nova licença")
     data  = inp("Nova data de inauguração")
+    saldo = inp("Novo saldo (€)")  # ← ADICIONADO
     code, obj = atualizar_casino(
         id_c,
         nome  or None, local or None,
-        lic   or None, data  or None
+        lic   or None, data  or None,
+        saldo or None  # ← ADICIONADO
     )
     if code == 200:
         ok("Casino atualizado com sucesso!")

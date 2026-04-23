@@ -1,4 +1,3 @@
-# ==============================
 # casino.py
 # CRUD simples para entidade Casino
 # SEM utilização de classes
@@ -11,40 +10,52 @@ from utils import (
     validar_nome,
     validar_localizacao,
     validar_licenca,
-    validar_data
+    validar_data,
+    validar_saldo
 )
 
 casinos = {}
 
 
 # CREATE
-def criar_casino(nome, localizacao, licenca, data_inauguracao):
-
+def criar_casino(nome, localizacao, licenca, data_inauguracao, saldo):
+    # Validar nome
     ok, res = validar_nome(nome)
     if not ok:
         return 500, res
     nome = res
 
+    # Validar localização
     ok, res = validar_localizacao(localizacao)
     if not ok:
         return 500, res
     localizacao = res
 
+    # Validar licença
     ok, res = validar_licenca(licenca)
     if not ok:
         return 500, res
     licenca = res
 
+    # Validar data
     ok, res = validar_data(data_inauguracao)
     if not ok:
         return 500, res
 
+    # Validar saldo
+    ok, res = validar_saldo(saldo)
+    if not ok:
+        return 500, res
+    saldo = res
+
+    # Criar casino
     id_casino = gerar_id_casino()
     casino = {
         "nome": nome,
         "localizacao": localizacao,
         "licenca": licenca,
-        "data_inauguracao": data_inauguracao
+        "data_inauguracao": data_inauguracao,
+        "saldo": saldo
     }
     casinos[id_casino] = casino
     return 201, casino
@@ -65,7 +76,8 @@ def consultar_casino(id_casino):
 
 
 # UPDATE
-def atualizar_casino(id_casino, nome=None, localizacao=None, licenca=None, data_inauguracao=None):
+def atualizar_casino(id_casino, nome=None, localizacao=None, licenca=None,
+                     data_inauguracao=None, saldo=None):
     if id_casino not in casinos:
         return 404, "Casino não encontrado."
 
@@ -92,6 +104,12 @@ def atualizar_casino(id_casino, nome=None, localizacao=None, licenca=None, data_
         if not ok:
             return 500, res
         casinos[id_casino]["data_inauguracao"] = data_inauguracao
+
+    if saldo is not None:
+        ok, res = validar_saldo(saldo)
+        if not ok:
+            return 500, res
+        casinos[id_casino]["saldo"] = res
 
     return 200, casinos[id_casino]
 

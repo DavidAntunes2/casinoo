@@ -200,6 +200,8 @@ def menu_principal():
 
 # ══════════════════════ UTILIZADORES ══════════════════════
 
+# Substitua a função gestao_utilizadores() no main.py por esta versão corrigida:
+
 def gestao_utilizadores():
     while True:
         cabecalho("GESTÃO DE UTILIZADORES", "Operações CRUD")
@@ -218,48 +220,92 @@ def gestao_utilizadores():
             print()
             mensagem_info("Preencha os dados do novo utilizador")
             print()
-            nome      = prompt_campo("Nome completo")
-            email     = prompt_campo("Email")
-            tipo      = prompt_campo("Tipo de conta  (standard / vip / high roller)")
+            nome = prompt_campo("Nome completo")
+            email = prompt_campo("Email")
+            tipo = prompt_campo("Tipo de conta  (standard / vip / high roller)")
             data_nasc = prompt_campo("Data de nascimento  (DD-MM-AAAA)")
-            nif       = prompt_campo("NIF")
-            iban      = prompt_campo("IBAN")
+            nif = prompt_campo("NIF")
+            iban = prompt_campo("IBAN")
             status, resultado = criar_utilizador_casino(nome, email, tipo, data_nasc, nif, iban)
-            mensagem_sucesso("Utilizador criado!") if status == 201 else mensagem_erro(str(resultado))
+
+            if status == 201:
+                mensagem_sucesso(f"Utilizador criado com ID: {resultado['id']}!")
+            else:
+                mensagem_erro(str(resultado))
             aguardar_enter()
 
         elif op == "2":
             status, dados = listar_utilizadores_casino()
-            caixa_lista("LISTA DE UTILIZADORES", dados) if status == 200 else mensagem_info("Nenhum utilizador encontrado.")
+            if status == 200 and dados:
+                caixa_lista("LISTA DE UTILIZADORES", dados)
+            else:
+                mensagem_info("Nenhum utilizador encontrado.")
             aguardar_enter()
 
         elif op == "3":
-            id_u = prompt_campo("ID do utilizador")
+            id_input = prompt_campo("ID do utilizador")
+
+            # Converter para string com 3 dígitos (001, 002, etc.)
+            try:
+                # Se for número, converter para inteiro e depois formatar
+                id_num = int(id_input)
+                id_u = str(id_num).zfill(3)
+            except ValueError:
+                # Se já for string, tentar usar diretamente
+                id_u = id_input.zfill(3) if id_input.isdigit() else id_input
+
             status, dados = consultar_utilizador_casino(id_u)
-            caixa_detalhe("UTILIZADOR", dados) if status == 200 else mensagem_erro(str(dados))
+
+            if status == 200:
+                # Remover o ID da exibição se existir
+                dados_exibir = {k: v for k, v in dados.items() if k != 'id'}
+                caixa_detalhe("UTILIZADOR", dados_exibir)
+            else:
+                mensagem_erro(str(dados))
             aguardar_enter()
 
         elif op == "4":
-            id_u = prompt_campo("ID do utilizador")
+            id_input = prompt_campo("ID do utilizador")
+            try:
+                id_num = int(id_input)
+                id_u = str(id_num).zfill(3)
+            except ValueError:
+                id_u = id_input.zfill(3) if id_input.isdigit() else id_input
+
             mensagem_aviso("Deixe em branco para não alterar")
             print()
-            nome  = prompt_campo("Novo nome")            or None
-            email = prompt_campo("Novo email")           or None
-            tipo  = prompt_campo("Novo tipo")            or None
-            data  = prompt_campo("Nova data de nascimento") or None
-            nif   = prompt_campo("Novo NIF")             or None
-            iban  = prompt_campo("Novo IBAN")            or None
+            nome = prompt_campo("Novo nome") or None
+            email = prompt_campo("Novo email") or None
+            tipo = prompt_campo("Novo tipo") or None
+            data = prompt_campo("Nova data de nascimento") or None
+            nif = prompt_campo("Novo NIF") or None
+            iban = prompt_campo("Novo IBAN") or None
+
             status, resultado = atualizar_utilizador_casino(id_u, nome, email, tipo, data, nif, iban)
-            mensagem_sucesso("Utilizador atualizado!") if status == 200 else mensagem_erro(str(resultado))
+
+            if status == 200:
+                mensagem_sucesso("Utilizador atualizado!")
+            else:
+                mensagem_erro(str(resultado))
             aguardar_enter()
 
         elif op == "5":
-            id_u = prompt_campo("ID do utilizador")
+            id_input = prompt_campo("ID do utilizador")
+            try:
+                id_num = int(id_input)
+                id_u = str(id_num).zfill(3)
+            except ValueError:
+                id_u = id_input.zfill(3) if id_input.isdigit() else id_input
+
             mensagem_confirmacao("ATENÇÃO: Esta ação é irreversível!")
             confirm = prompt_campo("Confirmar remoção? (s/n)", VERMELHO).lower()
+
             if confirm == 's':
                 status, resultado = remover_utilizador_casino(id_u)
-                mensagem_sucesso("Utilizador removido!") if status == 200 else mensagem_erro(str(resultado))
+                if status == 200:
+                    mensagem_sucesso("Utilizador removido!")
+                else:
+                    mensagem_erro(str(resultado))
             else:
                 mensagem_info("Operação cancelada.")
             aguardar_enter()
@@ -268,7 +314,6 @@ def gestao_utilizadores():
             break
         else:
             mensagem_erro("Opção inválida.")
-
 
 # ══════════════════════ CASINOS ══════════════════════
 

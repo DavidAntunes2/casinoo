@@ -10,23 +10,22 @@ from datetime import datetime
 # TR-XXXXXXXX para Transações
 # Os contadores abaixo são mantidos para compatibilidade com código existente
 
+# Em utils.py, modifique as funções de geração de ID:
+
 id_casino_counter = 1
 id_utilizador_counter = 1
 
-
-# ========== GERADORES DE ID ==========
 def gerar_id_casino():
     global id_casino_counter
     id_atual = id_casino_counter
     id_casino_counter += 1
-    return str(id_atual).zfill(3)
-
+    return str(id_atual).zfill(3)  # Já está correto
 
 def gerar_id_utilizador():
     global id_utilizador_counter
     id_atual = id_utilizador_counter
     id_utilizador_counter += 1
-    return str(id_atual).zfill(3)
+    return str(id_atual).zfill(3)  # Já está correto
 
 
 # ========== VALIDAÇÕES ==========

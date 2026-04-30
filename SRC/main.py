@@ -489,14 +489,21 @@ def gestao_transacoes():
 
 def ecra_saida():
     limpar()
+    linhas = [
+        "Obrigado por usar o Royal Casino.",
+        "Ate a proxima!",
+    ]
+    larg = max(len(l) for l in linhas) + 8
     print()
-    msg = "  A encerrar o sistema...  Ate logo!  "
-    n = len(msg) + 2
-    print(f"  {VERDE}{B}+{'=' * n}+{R}")
-    print(f"  {VERDE}{B}|{' ' * n}|{R}")
-    print(f"  {VERDE}{B}|{R}  {BRANCO}{B}{msg}{R}  {VERDE}{B}|{R}")
-    print(f"  {VERDE}{B}|{' ' * n}|{R}")
-    print(f"  {VERDE}{B}+{'=' * n}+{R}")
+    print(f"  {VERDE}{B}+{'=' * larg}+{R}")
+    print(f"  {VERDE}{B}|{' ' * larg}|{R}")
+    for l in linhas:
+        pad = larg - len(l)
+        esq = pad // 2
+        dir = pad - esq
+        print(f"  {VERDE}{B}|{R}{BRANCO}{B}{' ' * esq}{l}{' ' * dir}{R}{VERDE}{B}|{R}")
+    print(f"  {VERDE}{B}|{' ' * larg}|{R}")
+    print(f"  {VERDE}{B}+{'=' * larg}+{R}")
     print()
     time.sleep(0.8)
 

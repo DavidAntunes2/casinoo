@@ -12,35 +12,26 @@ transacoes = {}
 
 
 def gerar_id_transacao():
-    """Gera ID no formato TR-XXXXXXXX"""
     caracteres = string.ascii_uppercase + string.digits
     codigo = ''.join(random.choices(caracteres, k=8))
     return f"TR-{codigo}"
 
 
 def validar_data_transacao(data_str):
-    """Valida data em múltiplos formatos e verifica se não é futura"""
     if not data_str or not isinstance(data_str, str):
         return False, "Data inválida."
-
     formatos = ['%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y']
     data_valida = None
-
     for formato in formatos:
         try:
             data_valida = datetime.strptime(data_str.strip(), formato)
             break
         except ValueError:
             continue
-
     if data_valida is None:
         return False, "Data inválida. Use DD-MM-AAAA, AAAA-MM-DD ou DD/MM/AAAA"
-
-    # Verificar se data não é futura
     if data_valida.date() > datetime.now().date():
         return False, "Data não pode ser futura"
-
-    # Retornar no formato padronizado DD-MM-AAAA
     return True, data_valida.strftime('%d-%m-%Y')
 
 
@@ -55,7 +46,7 @@ def validar_tipo_transacao(tipo):
 
 def validar_valor_transacao(valor):
     try:
-        valor = float(valor)
+        valor = float(valor)  # aceita str ou float
         if valor <= 0:
             return False, "Valor da transação deve ser positivo."
         if valor > 1000000:
@@ -67,33 +58,22 @@ def validar_valor_transacao(valor):
 
 # CREATE
 def criar_transacao(id_utilizador, tipo, valor, data, id_casino):
-    # Validar se utilizador existe
     if id_utilizador not in utilizadores:
         return 500, f"Utilizador com ID {id_utilizador} não encontrado."
-
-    # Validar se casino existe
     if id_casino not in casinos:
         return 500, f"Casino com ID {id_casino} não encontrado."
-
-    # Validar tipo
     ok, res = validar_tipo_transacao(tipo)
     if not ok:
         return 500, res
     tipo = res
-
-    # Validar valor
     ok, res = validar_valor_transacao(valor)
     if not ok:
         return 500, res
     valor = res
-
-    # Validar data
     ok, res = validar_data_transacao(data)
     if not ok:
         return 500, res
     data = res
-
-    # Criar transação
     id_transacao = gerar_id_transacao()
     transacao = {
         "id_transacao": id_transacao,
@@ -107,72 +87,60 @@ def criar_transacao(id_utilizador, tipo, valor, data, id_casino):
     return 201, transacao
 
 
-# READ (listar todos)
+# READ
 def listar_transacoes():
     if not transacoes:
         return 404, "Sem transações"
     return 200, transacoes
 
 
-# READ (consultar individual)
 def consultar_transacao(id_transacao):
     if id_transacao not in transacoes:
         return 404, "Transação não encontrada"
     return 200, transacoes[id_transacao]
 
 
-# READ (listar por utilizador)
 def listar_transacoes_por_utilizador(id_utilizador):
     if id_utilizador not in utilizadores:
         return 404, "Utilizador não encontrado"
-
-    transacoes_user = {id_t: t for id_t, t in transacoes.items() if t["id_utilizador"] == id_utilizador}
-
-    if not transacoes_user:
+    result = {id_t: t for id_t, t in transacoes.items() if t["id_utilizador"] == id_utilizador}
+    if not result:
         return 404, "Sem transações para este utilizador"
-    return 200, transacoes_user
+    return 200, result
 
 
-# READ (listar por casino)
 def listar_transacoes_por_casino(id_casino):
     if id_casino not in casinos:
         return 404, "Casino não encontrado"
-
-    transacoes_casino = {id_t: t for id_t, t in transacoes.items() if t["id_casino"] == id_casino}
-
-    if not transacoes_casino:
+    result = {id_t: t for id_t, t in transacoes.items() if t["id_casino"] == id_casino}
+    if not result:
         return 404, "Sem transações para este casino"
-    return 200, transacoes_casino
+    return 200, result
 
 
 # UPDATE
 def atualizar_transacao(id_transacao, tipo=None, valor=None, data=None, id_casino=None):
     if id_transacao not in transacoes:
         return 404, "Transação não encontrada"
-
     if tipo is not None:
         ok, res = validar_tipo_transacao(tipo)
         if not ok:
             return 500, res
         transacoes[id_transacao]["tipo"] = res
-
     if valor is not None:
-        ok, res = validar_valor_transacao(valor)
+        ok, res = validar_valor_transacao(valor)  # valida str ou float
         if not ok:
             return 500, res
         transacoes[id_transacao]["valor"] = res
-
     if data is not None:
         ok, res = validar_data_transacao(data)
         if not ok:
             return 500, res
         transacoes[id_transacao]["data"] = res
-
     if id_casino is not None:
         if id_casino not in casinos:
             return 500, f"Casino com ID {id_casino} não encontrado."
         transacoes[id_transacao]["id_casino"] = id_casino
-
     return 200, transacoes[id_transacao]
 
 

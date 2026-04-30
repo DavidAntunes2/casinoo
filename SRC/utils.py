@@ -1,143 +1,112 @@
-# ==============================
 # utils.py
-# Geração de ID e validações
-# para utilizador de casino
+# Funções utilitárias para validação e geração de IDs
 # ==============================
 
-import re, uuid
+import re
 from datetime import datetime
 
-BAN = [
-    "pila", "puta", "merda", "foda-se", "caralho", "cona", "cabrão",
-    "idiota", "imbecil", "estúpido", "burro", "vaca", "porra", "filho da puta",
-    "viado", "cu", "prostituta", "fodasse", "besta", "treta", "lixo", "cretino",
-    "mongol", "retardado", "palhaço", "chulo", "paneleiro"
-]
+# NOTA: Os IDs agora são gerados com formato específico nas suas entidades
+# JG-XXXXXXXX para Jogos
+# TR-XXXXXXXX para Transações
+# Os contadores abaixo são mantidos para compatibilidade com código existente
+
+# Em utils.py, modifique as funções de geração de ID:
+
+id_casino_counter = 1
+id_utilizador_counter = 1
+
+def gerar_id_casino():
+    global id_casino_counter
+    id_atual = id_casino_counter
+    id_casino_counter += 1
+    return str(id_atual).zfill(3)  # Já está correto
+
+def gerar_id_utilizador():
+    global id_utilizador_counter
+    id_atual = id_utilizador_counter
+    id_utilizador_counter += 1
+    return str(id_atual).zfill(3)  # Já está correto
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  GERAÇÃO DE ID
-# ══════════════════════════════════════════════════════════════════════════════
-
-def gerar_id_utilizador_casino():
-    return "UC-" + str(uuid.uuid4())[:8].upper()
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  VALIDAÇÕES
-# ══════════════════════════════════════════════════════════════════════════════
-
-def ofensivo(t):
-    return any(p in t.lower() for p in BAN)
-
-
+# ========== VALIDAÇÕES ==========
 def validar_nome(nome):
-    valor = nome.strip()
-    if not valor:
-        return False, "Nome não pode estar vazio."
-    if ofensivo(valor):
-        return False, "Nome contém linguagem ofensiva."
-    if not re.fullmatch(r"[A-Za-zÀ-ÿ]+(-[A-Za-zÀ-ÿ]+)*(\s[A-Za-zÀ-ÿ]+(-[A-Za-zÀ-ÿ]+)*)*", valor):
-        return False, "Nome contém caracteres inválidos."
-    valor = " ".join(
-        "-".join(part.capitalize() for part in palavra.split("-"))
-        for palavra in valor.split()
-    )
-    return True, valor
+    if not nome or not isinstance(nome, str):
+        return False, "Nome inválido."
+    nome = nome.strip()
+    if len(nome) < 2:
+        return False, "Nome deve ter pelo menos 2 caracteres."
+    if len(nome) > 100:
+        return False, "Nome deve ter no máximo 100 caracteres."
+    return True, nome
 
 
-def validar_email(mail):
-    mail = mail.strip().lower()
-    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", mail):
+def validar_email(email):
+    if not email or not isinstance(email, str):
         return False, "Email inválido."
-    return True, mail
+    email = email.strip()
+    padrao = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(padrao, email):
+        return False, "Email inválido."
+    return True, email
+
+
+def validar_tipo_conta(tipo_conta):
+    if not tipo_conta or not isinstance(tipo_conta, str):
+        return False, "Tipo de conta inválido."
+    tipo_conta = tipo_conta.strip().lower()
+    if tipo_conta not in ['standard', 'vip', 'high roller']:
+        return False, "Tipo de conta deve ser standard, vip ou high roller."
+    return True, tipo_conta
+
+
+def validar_data(data_str):
+    if not data_str or not isinstance(data_str, str):
+        return False, "Data inválida."
+    try:
+        datetime.strptime(data_str, '%d-%m-%Y')
+        return True, data_str
+    except ValueError:
+        return False, "Data inválida. Use o formato DD-MM-AAAA."
 
 
 def validar_nif(nif):
+    if not nif or not isinstance(nif, str):
+        return False, "NIF inválido."
     nif = nif.strip()
-    if not re.fullmatch(r"\d{9}", nif):
-        return False, "NIF deve ter exatamente 9 dígitos."
-    if nif[0] not in "123456789":
-        return False, "NIF inválido (primeiro dígito não permitido)."
-    soma = sum(int(nif[i]) * (9 - i) for i in range(8))
-    resto = soma % 11
-    controlo = 0 if resto < 2 else 11 - resto
-    if int(nif[8]) != controlo:
-        return False, "NIF inválido (dígito de controlo incorreto)."
+    if not nif.isdigit() or len(nif) != 9:
+        return False, "NIF deve ter 9 dígitos."
     return True, nif
 
 
 def validar_iban(iban):
-    iban = iban.strip().replace(" ", "").upper()
-    if not re.fullmatch(r"PT\d{23}", iban):
-        return False, "IBAN deve estar no formato PT seguido de 23 dígitos."
-    reordenado = iban[4:] + iban[:4]
-    numerico = "".join(str(ord(c) - 55) if c.isalpha() else c for c in reordenado)
-    if int(numerico) % 97 != 1:
-        return False, "IBAN inválido (checksum incorreto)."
+    if not iban or not isinstance(iban, str):
+        return False, "IBAN inválido."
+    iban = iban.strip().upper()
+    if len(iban) < 15 or len(iban) > 34:
+        return False, "IBAN inválido."
     return True, iban
 
 
-def validar_data_nascimento(data_str):
-    for fmt in ("%d-%m-%Y", "%Y-%m-%d", "%d/%m/%Y"):
-        try:
-            nasc = datetime.strptime(data_str.strip(), fmt)
-            hoje = datetime.now()
-            idade = hoje.year - nasc.year - ((hoje.month, hoje.day) < (nasc.month, nasc.day))
-            if nasc > hoje:
-                return False, "Data de nascimento no futuro."
-            if idade > 116:
-                return False, f"Idade inválida: {idade} anos (máximo 116)."
-            if idade < 18:
-                return False, f"Idade insuficiente: {idade} anos (mínimo 18)."
-            return True, data_str.strip()
-        except ValueError:
-            continue
-    return False, "Data inválida. Use DD-MM-AAAA, AAAA-MM-DD ou DD/MM/AAAA."
-
-
-def validar_tipo_conta(tipo):
-    tipos_validos = ["standard", "vip", "high roller"]
-    tipo = tipo.strip().lower()
-    if tipo not in tipos_validos:
-        return False, f"Tipo de conta inválido. Escolha: {', '.join(tipos_validos)}."
-    return True, tipo
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  VALIDAÇÕES PARA CASINO
-# ══════════════════════════════════════════════════════════════════════════════
-
-def validar_localizacao(loc):
-    loc = loc.strip()
-    if not loc:
-        return False, "Localização não pode estar vazia."
-    if len(loc) < 3:
+def validar_localizacao(localizacao):
+    if not localizacao or not isinstance(localizacao, str):
+        return False, "Localização inválida."
+    localizacao = localizacao.strip()
+    if len(localizacao) < 3:
         return False, "Localização deve ter pelo menos 3 caracteres."
-    if len(loc) > 200:
+    if len(localizacao) > 200:
         return False, "Localização deve ter no máximo 200 caracteres."
-    return True, loc.title()
+    return True, localizacao
 
 
-def validar_licenca(lic):
-    lic = lic.strip().upper()
-    if not lic:
-        return False, "Licença não pode estar vazia."
-    if len(lic) < 5:
+def validar_licenca(licenca):
+    if not licenca or not isinstance(licenca, str):
+        return False, "Licença inválida."
+    licenca = licenca.strip()
+    if len(licenca) < 5:
         return False, "Licença deve ter pelo menos 5 caracteres."
-    if len(lic) > 50:
+    if len(licenca) > 50:
         return False, "Licença deve ter no máximo 50 caracteres."
-    return True, lic
-
-
-def validar_data(data_str):
-    for fmt in ("%d-%m-%Y", "%Y-%m-%d", "%d/%m/%Y"):
-        try:
-            datetime.strptime(data_str.strip(), fmt)
-            return True, data_str.strip()
-        except ValueError:
-            continue
-    return False, "Data inválida. Use DD-MM-AAAA, AAAA-MM-DD ou DD/MM/AAAA."
+    return True, licenca
 
 
 def validar_saldo(saldo):
@@ -151,3 +120,45 @@ def validar_saldo(saldo):
         return True, round(saldo, 2)
     except (ValueError, TypeError):
         return False, "Saldo inválido. Deve ser um número."
+
+
+def validar_tipo_jogo(tipo):
+    if not tipo or not isinstance(tipo, str):
+        return False, "Tipo de jogo inválido."
+    tipo = tipo.strip().lower()
+    if tipo not in ['carta', 'roleta', 'slot']:
+        return False, "Tipo de jogo deve ser carta, roleta ou slot."
+    return True, tipo
+
+
+def validar_aposta(aposta, min_val=0, max_val=1000000):
+    try:
+        aposta = float(aposta)
+        if aposta < min_val:
+            return False, f"Aposta não pode ser menor que {min_val}."
+        if aposta > max_val:
+            return False, f"Aposta não pode ser maior que {max_val}."
+        return True, round(aposta, 2)
+    except (ValueError, TypeError):
+        return False, "Valor de aposta inválido."
+
+
+def validar_tipo_transacao(tipo):
+    if not tipo or not isinstance(tipo, str):
+        return False, "Tipo de transação inválido."
+    tipo = tipo.strip().lower()
+    if tipo not in ['deposito', 'levantamento']:
+        return False, "Tipo deve ser 'deposito' ou 'levantamento'."
+    return True, tipo
+
+
+def validar_valor_transacao(valor):
+    try:
+        valor = float(valor)
+        if valor <= 0:
+            return False, "Valor da transação deve ser positivo."
+        if valor > 1000000:
+            return False, "Valor muito alto (máx: 1.000.000)."
+        return True, round(valor, 2)
+    except (ValueError, TypeError):
+        return False, "Valor inválido."

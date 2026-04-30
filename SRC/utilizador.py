@@ -35,11 +35,11 @@ def criar_utilizador_casino(nome, email, tipo_conta, data_nascimento, nif, iban)
         return 500, res
     tipo_conta = res
 
-    # Validar data nascimento
+    # Validar data nascimento - CORRIGIDO
     ok, res = validar_data(data_nascimento)
     if not ok:
         return 500, res
-    data_nascimento = res  # CORRIGIDO: usar a variável correta
+    data_nascimento = res  # <--- LINHA CORRIGIDA
 
     # Validar NIF
     ok, res = validar_nif(nif)
@@ -56,7 +56,6 @@ def criar_utilizador_casino(nome, email, tipo_conta, data_nascimento, nif, iban)
     # Criar utilizador
     id_utilizador = gerar_id_utilizador()
     utilizador = {
-        "id": id_utilizador,  # ADICIONADO: incluir ID no dicionário
         "nome": nome,
         "email": email,
         "tipo_conta": tipo_conta,
@@ -68,39 +67,35 @@ def criar_utilizador_casino(nome, email, tipo_conta, data_nascimento, nif, iban)
     return 201, utilizador
 
 
-# READ (listar todos) - CORRIGIDO para formato consistente
+# READ (listar todos)
 def listar_utilizadores_casino():
     if not utilizadores:
         return 404, "Não existem utilizadores registados."
-
-    # Retornar no formato esperado pelo main.py {id: dados}
-    dados_formatados = {}
-    for id_user, dados in utilizadores.items():
-        dados_formatados[id_user] = {
-            'nome': dados['nome'],
-            'saldo': 0  # Saldo padrão, ajuste conforme necessário
-        }
-    return 200, dados_formatados
+    return 200, utilizadores
 
 
-# READ (consultar individual)
+# READ (consultar individual) - CORRIGIDO para aceitar nome ou ID
 def consultar_utilizador_casino(id_utilizador):
-    # Converter para string se necessário (os IDs são strings tipo "001")
-    id_utilizador = str(id_utilizador).zfill(3)
-
-    if id_utilizador not in utilizadores:
-        return 404, "Utilizador não encontrado."
-
-    # Retornar cópia para não modificar o original
-    dados = utilizadores[id_utilizador].copy()
-    return 200, dados
+    # Se for número (ou string numérica), procura por ID
+    if str(id_utilizador).isdigit():
+        id_formatado = str(int(id_utilizador)).zfill(3)
+        if id_formatado in utilizadores:
+            return 200, utilizadores[id_formatado]
+    
+    # Se não encontrou por ID, procura por nome (case insensitive)
+    for uid, dados in utilizadores.items():
+        if dados['nome'].lower() == str(id_utilizador).lower():
+            return 200, dados
+    
+    return 404, "Utilizador não encontrado."
 
 
 # UPDATE
 def atualizar_utilizador_casino(id_utilizador, nome=None, email=None, tipo_conta=None,
-                                data_nascimento=None, nif=None, iban=None):
+                                 data_nascimento=None, nif=None, iban=None):
+    # Converter ID para formato correto
     id_utilizador = str(id_utilizador).zfill(3)
-
+    
     if id_utilizador not in utilizadores:
         return 404, "Utilizador não encontrado."
 
@@ -146,7 +141,7 @@ def atualizar_utilizador_casino(id_utilizador, nome=None, email=None, tipo_conta
 # DELETE
 def remover_utilizador_casino(id_utilizador):
     id_utilizador = str(id_utilizador).zfill(3)
-
+    
     if id_utilizador not in utilizadores:
         return 404, "Utilizador não encontrado."
     del utilizadores[id_utilizador]

@@ -60,6 +60,9 @@ def _formatar_id(id_input):
 
 def cabecalho(titulo, subtitulo=None):
     limpar()
+    titulo = "[ ROYAL CASINO  --  Gestao de Membros ]"
+    pad_esq = (W - len(titulo)) // 2
+    pad_dir = W - len(titulo) - pad_esq
     print()
     print(f"  {OURO}{B}+{'═' * W}+{R}")
     print(f"  {OURO}{B}║{R}{CREME_CLARO}{B}{_centro(titulo, W)}{R}{OURO}{B}║{R}")

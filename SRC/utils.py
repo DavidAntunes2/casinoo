@@ -5,30 +5,28 @@
 import re
 from datetime import datetime
 
-# NOTA: Os IDs agora são gerados com formato específico nas suas entidades
-# JG-XXXXXXXX para Jogos
-# TR-XXXXXXXX para Transações
-# Os contadores abaixo são mantidos para compatibilidade com código existente
+# ══════════════════════ GERAÇÃO DE IDs ══════════════════════
 
-# Em utils.py, modifique as funções de geração de ID:
-
-id_casino_counter = 1
+id_casino_counter    = 1
 id_utilizador_counter = 1
+
 
 def gerar_id_casino():
     global id_casino_counter
     id_atual = id_casino_counter
     id_casino_counter += 1
-    return str(id_atual).zfill(3)  # Já está correto
+    return str(id_atual).zfill(3)
+
 
 def gerar_id_utilizador():
     global id_utilizador_counter
     id_atual = id_utilizador_counter
     id_utilizador_counter += 1
-    return str(id_atual).zfill(3)  # Já está correto
+    return str(id_atual).zfill(3)
 
 
-# ========== VALIDAÇÕES ==========
+# ══════════════════════ VALIDAÇÕES GERAIS ══════════════════════
+
 def validar_nome(nome):
     if not nome or not isinstance(nome, str):
         return False, "Nome inválido."
@@ -62,11 +60,14 @@ def validar_tipo_conta(tipo_conta):
 def validar_data(data_str):
     if not data_str or not isinstance(data_str, str):
         return False, "Data inválida."
-    try:
-        datetime.strptime(data_str, '%d-%m-%Y')
-        return True, data_str
-    except ValueError:
-        return False, "Data inválida. Use o formato DD-MM-AAAA."
+    formatos = ['%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y']
+    for fmt in formatos:
+        try:
+            data_valida = datetime.strptime(data_str.strip(), fmt)
+            return True, data_valida.strftime('%d-%m-%Y')
+        except ValueError:
+            continue
+    return False, "Data inválida. Use DD-MM-AAAA, AAAA-MM-DD ou DD/MM/AAAA."
 
 
 def validar_nif(nif):
@@ -86,6 +87,8 @@ def validar_iban(iban):
         return False, "IBAN inválido."
     return True, iban
 
+
+# ══════════════════════ VALIDAÇÕES DE CASINO ══════════════════════
 
 def validar_localizacao(localizacao):
     if not localizacao or not isinstance(localizacao, str):
@@ -110,7 +113,6 @@ def validar_licenca(licenca):
 
 
 def validar_saldo(saldo):
-    """Valida o saldo do casino"""
     try:
         saldo = float(saldo)
         if saldo < 0:
@@ -121,6 +123,8 @@ def validar_saldo(saldo):
     except (ValueError, TypeError):
         return False, "Saldo inválido. Deve ser um número."
 
+
+# ══════════════════════ VALIDAÇÕES DE JOGO ══════════════════════
 
 def validar_tipo_jogo(tipo):
     if not tipo or not isinstance(tipo, str):
@@ -143,6 +147,9 @@ def validar_aposta(aposta, min_val=0, max_val=1000000):
         return False, "Valor de aposta inválido."
 
 
+# ══════════════════════ VALIDAÇÕES DE TRANSAÇÃO ══════════════════════
+# Movidas de transacao.py para cá
+
 def validar_tipo_transacao(tipo):
     if not tipo or not isinstance(tipo, str):
         return False, "Tipo de transação inválido."
@@ -162,3 +169,18 @@ def validar_valor_transacao(valor):
         return True, round(valor, 2)
     except (ValueError, TypeError):
         return False, "Valor inválido."
+
+
+def validar_data_transacao(data_str):
+    if not data_str or not isinstance(data_str, str):
+        return False, "Data inválida."
+    formatos = ['%d-%m-%Y', '%Y-%m-%d', '%d/%m/%Y']
+    for fmt in formatos:
+        try:
+            data_valida = datetime.strptime(data_str.strip(), fmt)
+            if data_valida.date() > datetime.now().date():
+                return False, "Data não pode ser futura."
+            return True, data_valida.strftime('%d-%m-%Y')
+        except ValueError:
+            continue
+    return False, "Data inválida. Use DD-MM-AAAA, AAAA-MM-DD ou DD/MM/AAAA."

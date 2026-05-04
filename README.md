@@ -1,3 +1,67 @@
+# ♠ Royal Casino — Sistema de Gestão
+
+Sistema de gestão de casino em Python com interface de terminal interativa,
+validações completas e armazenamento em memória.
+
+---
+
+## 📁 Estrutura do Projeto
+SRC/
+├── main.py          # Interface de terminal e navegação
+├── utilizador.py    # CRUD da entidade Utilizador
+├── casino.py        # CRUD da entidade Casino
+├── jogo.py          # CRUD da entidade Jogo
+├── transacao.py     # CRUD da entidade Transação
+└── utils.py         # Validações e geração de IDs
+
+---
+
+## ▶️ Como Correr
+
+```bash
+python main.py
+```
+
+> Requer Python 3.8+. Sem dependências externas.
+
+---
+
+## 🗺️ Navegação
+Menu Principal
+├── [1] Gestão de Utilizadores
+│     ├── [1] Criar utilizador
+│     ├── [2] Listar utilizadores
+│     ├── [3] Consultar utilizador
+│     ├── [4] Atualizar utilizador
+│     ├── [5] Remover utilizador
+│     └── [0] Voltar
+│
+├── [2] Gestão de Casinos
+│     ├── [1] Criar casino
+│     ├── [2] Listar casinos
+│     ├── [3] Consultar casino
+│     ├── [4] Atualizar casino
+│     ├── [5] Remover casino
+│     └── [0] Voltar
+│
+├── [3] Gestão de Jogos
+│     ├── [1] Criar jogo
+│     ├── [2] Listar jogos
+│     ├── [3] Consultar jogo
+│     ├── [4] Atualizar jogo
+│     ├── [5] Remover jogo
+│     └── [0] Voltar
+│
+├── [4] Gestão de Transações
+│     ├── [1] Criar transação
+│     ├── [2] Listar transações
+│     ├── [3] Consultar transação
+│     ├── [4] Atualizar transação
+│     ├── [5] Remover transação
+│     └── [0] Voltar
+│
+└── [0] Sair
+
 ---
 
 ## 📦 Entidades

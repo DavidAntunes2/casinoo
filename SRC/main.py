@@ -1,3 +1,7 @@
+# main.py
+# Interface de terminal — Versão Completa
+# ==============================
+
 import os
 import time
 import re
@@ -37,7 +41,7 @@ def limpar():
 
 
 def _strip_ansi(t):
-    return re.sub(r'\033\[[0-9;]*m', '', t)
+    return re.sub(r'\033\[[0-9;]*m', '', str(t))
 
 
 def _centro(texto, largura):
@@ -49,7 +53,6 @@ def _centro(texto, largura):
 
 
 def _formatar_id(id_input):
-    """Converte input de ID para formato com 3 dígitos (ex: '1' -> '001')"""
     s = str(id_input).strip()
     if s.isdigit():
         return s.zfill(3)
@@ -60,9 +63,6 @@ def _formatar_id(id_input):
 
 def cabecalho(titulo, subtitulo=None):
     limpar()
-    titulo = "[ ROYAL CASINO  --  Gestao de Membros ]"
-    pad_esq = (W - len(titulo)) // 2
-    pad_dir = W - len(titulo) - pad_esq
     print()
     print(f"  {OURO}{B}+{'═' * W}+{R}")
     print(f"  {OURO}{B}║{R}{CREME_CLARO}{B}{_centro(titulo, W)}{R}{OURO}{B}║{R}")
@@ -75,37 +75,45 @@ def cabecalho(titulo, subtitulo=None):
 # ══════════════════════ MENSAGENS ══════════════════════
 
 def _msg(tag, cor, msg):
-    interior = f"  {tag}   {msg}  "
-    n = len(_strip_ansi(interior))
+    tag_raw = _strip_ansi(tag)
+    msg_raw = _strip_ansi(msg)
+
+    # Largura baseada só em texto visível
+    n = len(f"  {tag_raw}   {msg_raw}  ")
     borda = f"  {cor}{B}+{'─' * n}+{R}"
+
+    # Padding para fechar a borda direita corretamente
+    interior_raw = f"  {tag_raw}   {msg_raw}  "
+    pad = n - len(interior_raw)
+
     print()
     print(borda)
-    print(f"  {cor}{B}|{R}  {cor}{B}{tag}{R}   {BRANCO}{msg}{R}  {cor}{B}|{R}")
+    print(f"  {cor}{B}|{R}  {cor}{B}{tag}{R}   {BRANCO}{msg}{R}{' ' * pad}  {cor}{B}|{R}")
     print(borda)
 
 
 def mensagem_erro(msg):
-    _msg("✖  ERRO ", VERMELHO, msg)
+    _msg("ERRO ", VERMELHO, msg)
     time.sleep(1.5)
 
 
 def mensagem_sucesso(msg):
-    _msg("✔  OK   ", VERDE2, msg)
+    _msg(" OK  ", VERDE2, msg)
     time.sleep(1.3)
 
 
 def mensagem_info(msg):
-    _msg("ℹ  INFO ", AZUL, msg)
+    _msg("INFO ", AZUL, msg)
     time.sleep(1.2)
 
 
 def mensagem_aviso(msg):
-    _msg("⚠  AVISO", AMARELO, msg)
+    _msg("AVISO", AMARELO, msg)
     time.sleep(1.2)
 
 
 def mensagem_confirmacao(msg):
-    _msg("?  CONF ", MAGENTA, msg)
+    _msg("CONF ", MAGENTA, msg)
 
 
 def aguardar_enter():
@@ -121,7 +129,7 @@ def caixa_menu(titulo, opcoes):
                max(len(l) for l in linhas_raw) + 6)
     larg = min(larg, 58)
 
-    sep  = f"  {OURO_ESC}+{'─' * larg}+{R}"
+    sep = f"  {OURO_ESC}+{'─' * larg}+{R}"
     print(sep)
     print(f"  {OURO_ESC}│{R}{OURO}{B}{_centro(titulo, larg)}{R}{OURO_ESC}│{R}")
     print(sep)
@@ -180,11 +188,9 @@ def caixa_lista(titulo, itens):
 
 
 def caixa_detalhe(entidade, dados):
-    """Exibe os detalhes de uma entidade numa caixa bem alinhada."""
     COL_CHAVE = 22
-
-    linhas_vis  = []
-    linhas_raw  = []
+    linhas_vis = []
+    linhas_raw = []
 
     for chave, valor in dados.items():
         chave_fmt = chave.replace('_', ' ').title()
@@ -270,7 +276,6 @@ def gestao_utilizadores():
             data_nasc = prompt_campo("Data de nascimento  (DD-MM-AAAA)")
             nif       = prompt_campo("NIF")
             iban      = prompt_campo("IBAN")
-
             status, resultado = criar_utilizador_casino(nome, email, tipo, data_nasc, nif, iban)
             if status == 201:
                 mensagem_sucesso(f"Utilizador criado com ID: {resultado['id_utilizador']}!")
@@ -299,13 +304,12 @@ def gestao_utilizadores():
             id_u = _formatar_id(prompt_campo("ID do utilizador"))
             mensagem_aviso("Deixe em branco para não alterar")
             print()
-            nome  = prompt_campo("Novo nome")                              or None
-            email = prompt_campo("Novo email")                             or None
-            tipo  = prompt_campo("Novo tipo de conta")                     or None
-            data  = prompt_campo("Nova data de nascimento (DD-MM-AAAA)")   or None
-            nif   = prompt_campo("Novo NIF")                               or None
-            iban  = prompt_campo("Novo IBAN")                              or None
-
+            nome  = prompt_campo("Novo nome")                            or None
+            email = prompt_campo("Novo email")                           or None
+            tipo  = prompt_campo("Novo tipo de conta")                   or None
+            data  = prompt_campo("Nova data de nascimento (DD-MM-AAAA)") or None
+            nif   = prompt_campo("Novo NIF")                             or None
+            iban  = prompt_campo("Novo IBAN")                            or None
             status, resultado = atualizar_utilizador_casino(id_u, nome, email, tipo, data, nif, iban)
             if status == 200:
                 mensagem_sucesso("Utilizador atualizado com sucesso!")
@@ -315,8 +319,8 @@ def gestao_utilizadores():
 
         elif op == "5":
             id_u = _formatar_id(prompt_campo("ID do utilizador"))
-            mensagem_confirmacao("Atenção: esta ação é irreversível!")
-            confirm = prompt_campo("Confirmar remoção? (s/n)", VERMELHO).lower()
+            mensagem_confirmacao("Atencao: esta acao e irreversivel!")
+            confirm = prompt_campo("Confirmar remocao? (s/n)", VERMELHO).lower()
             if confirm == 's':
                 status, resultado = remover_utilizador_casino(id_u)
                 if status == 200:
@@ -324,13 +328,13 @@ def gestao_utilizadores():
                 else:
                     mensagem_erro(str(resultado))
             else:
-                mensagem_info("Operação cancelada.")
+                mensagem_info("Operacao cancelada.")
             aguardar_enter()
 
         elif op == "0":
             break
         else:
-            mensagem_erro("Opção inválida. Escolha uma opção do menu.")
+            mensagem_erro("Opcao invalida. Escolha uma opcao do menu.")
 
 
 # ══════════════════════ CASINOS ══════════════════════
@@ -354,11 +358,10 @@ def gestao_casinos():
             mensagem_info("Preencha os dados do novo casino")
             print()
             nome       = prompt_campo("Nome do casino")
-            local      = prompt_campo("Localização  (cidade, país)")
-            licenca    = prompt_campo("Licença")
-            data_inaug = prompt_campo("Data de inauguração  (DD-MM-AAAA)")
+            local      = prompt_campo("Localizacao  (cidade, pais)")
+            licenca    = prompt_campo("Licenca")
+            data_inaug = prompt_campo("Data de inauguracao  (DD-MM-AAAA)")
             saldo      = prompt_campo("Saldo inicial  (EUR)", VERDE)
-
             status, resultado = criar_casino(nome, local, licenca, data_inaug, saldo)
             if status == 201:
                 mensagem_sucesso(f"Casino criado com ID: {resultado['id_casino']}!  Saldo: EUR {resultado['saldo']:,.2f}")
@@ -385,14 +388,13 @@ def gestao_casinos():
 
         elif op == "4":
             id_c = _formatar_id(prompt_campo("ID do casino"))
-            mensagem_aviso("Deixe em branco para não alterar")
+            mensagem_aviso("Deixe em branco para nao alterar")
             print()
-            nome    = prompt_campo("Novo nome")                          or None
-            local   = prompt_campo("Nova localização")                   or None
-            licenca = prompt_campo("Nova licença")                       or None
-            data    = prompt_campo("Nova data de inauguração (DD-MM-AAAA)") or None
-            saldo   = prompt_campo("Novo saldo  (EUR)", VERDE)           or None
-
+            nome    = prompt_campo("Novo nome")                             or None
+            local   = prompt_campo("Nova localizacao")                      or None
+            licenca = prompt_campo("Nova licenca")                          or None
+            data    = prompt_campo("Nova data de inauguracao (DD-MM-AAAA)") or None
+            saldo   = prompt_campo("Novo saldo  (EUR)", VERDE)              or None
             status, resultado = atualizar_casino(id_c, nome, local, licenca, data, saldo)
             if status == 200:
                 mensagem_sucesso("Casino atualizado com sucesso!")
@@ -402,8 +404,8 @@ def gestao_casinos():
 
         elif op == "5":
             id_c = _formatar_id(prompt_campo("ID do casino"))
-            mensagem_confirmacao("Atenção: esta ação é irreversível!")
-            confirm = prompt_campo("Confirmar remoção? (s/n)", VERMELHO).lower()
+            mensagem_confirmacao("Atencao: esta acao e irreversivel!")
+            confirm = prompt_campo("Confirmar remocao? (s/n)", VERMELHO).lower()
             if confirm == 's':
                 status, resultado = remover_casino(id_c)
                 if status == 200:
@@ -411,13 +413,13 @@ def gestao_casinos():
                 else:
                     mensagem_erro(str(resultado))
             else:
-                mensagem_info("Operação cancelada.")
+                mensagem_info("Operacao cancelada.")
             aguardar_enter()
 
         elif op == "0":
             break
         else:
-            mensagem_erro("Opção inválida. Escolha uma opção do menu.")
+            mensagem_erro("Opcao invalida. Escolha uma opcao do menu.")
 
 
 # ══════════════════════ JOGOS ══════════════════════
@@ -442,10 +444,9 @@ def gestao_jogos():
             print()
             nome       = prompt_campo("Nome do jogo")
             tipo       = prompt_campo("Tipo  (carta / roleta / slot)")
-            aposta_min = prompt_campo("Aposta mínima  (EUR)")
-            aposta_max = prompt_campo("Aposta máxima  (EUR)")
+            aposta_min = prompt_campo("Aposta minima  (EUR)")
+            aposta_max = prompt_campo("Aposta maxima  (EUR)")
             id_casino  = _formatar_id(prompt_campo("ID do casino"))
-
             status, resultado = criar_jogo(nome, tipo, aposta_min, aposta_max, id_casino)
             if status == 201:
                 mensagem_sucesso(f"Jogo criado com ID: {resultado['id_jogo']}!")
@@ -459,7 +460,7 @@ def gestao_jogos():
                 itens_fmt = {}
                 for id_j, info in dados.items():
                     itens_fmt[id_j] = {
-                        'nome': f"{info['nome']}  [{info['tipo']}]  EUR {info['aposta_minima']:.2f} – {info['aposta_maxima']:.2f}"
+                        'nome': f"{info['nome']}  [{info['tipo']}]  EUR {info['aposta_minima']:.2f} - {info['aposta_maxima']:.2f}"
                     }
                 caixa_lista("LISTA DE JOGOS", itens_fmt)
             else:
@@ -477,17 +478,15 @@ def gestao_jogos():
 
         elif op == "4":
             id_j = prompt_campo("ID do jogo")
-            mensagem_aviso("Deixe em branco para não alterar")
+            mensagem_aviso("Deixe em branco para nao alterar")
             print()
-            nome       = prompt_campo("Novo nome")                      or None
-            tipo       = prompt_campo("Novo tipo (carta/roleta/slot)")   or None
-            aposta_min = prompt_campo("Nova aposta mínima  (EUR)")       or None
-            aposta_max = prompt_campo("Nova aposta máxima  (EUR)")       or None
-            id_casino  = prompt_campo("Novo ID do casino")               or None
-
+            nome       = prompt_campo("Novo nome")                     or None
+            tipo       = prompt_campo("Novo tipo (carta/roleta/slot)") or None
+            aposta_min = prompt_campo("Nova aposta minima  (EUR)")     or None
+            aposta_max = prompt_campo("Nova aposta maxima  (EUR)")     or None
+            id_casino  = prompt_campo("Novo ID do casino")             or None
             if id_casino:
                 id_casino = _formatar_id(id_casino)
-
             status, resultado = atualizar_jogo(id_j, nome, tipo, aposta_min, aposta_max, id_casino)
             if status == 200:
                 mensagem_sucesso("Jogo atualizado com sucesso!")
@@ -497,8 +496,8 @@ def gestao_jogos():
 
         elif op == "5":
             id_j = prompt_campo("ID do jogo")
-            mensagem_confirmacao("Atenção: esta ação é irreversível!")
-            confirm = prompt_campo("Confirmar remoção? (s/n)", VERMELHO).lower()
+            mensagem_confirmacao("Atencao: esta acao e irreversivel!")
+            confirm = prompt_campo("Confirmar remocao? (s/n)", VERMELHO).lower()
             if confirm == 's':
                 status, resultado = remover_jogo(id_j)
                 if status == 200:
@@ -506,13 +505,13 @@ def gestao_jogos():
                 else:
                     mensagem_erro(str(resultado))
             else:
-                mensagem_info("Operação cancelada.")
+                mensagem_info("Operacao cancelada.")
             aguardar_enter()
 
         elif op == "0":
             break
         else:
-            mensagem_erro("Opção inválida. Escolha uma opção do menu.")
+            mensagem_erro("Opcao invalida. Escolha uma opcao do menu.")
 
 
 # ══════════════════════ TRANSAÇÕES ══════════════════════
@@ -521,11 +520,11 @@ def gestao_transacoes():
     while True:
         cabecalho("GESTÃO DE TRANSAÇÕES", "Operações CRUD")
         opcoes = {
-            "1": "Criar Transação",
-            "2": "Listar Transações",
-            "3": "Consultar Transação",
-            "4": "Atualizar Transação",
-            "5": "Remover Transação",
+            "1": "Criar Transacao",
+            "2": "Listar Transacoes",
+            "3": "Consultar Transacao",
+            "4": "Atualizar Transacao",
+            "5": "Remover Transacao",
             "0": "Voltar",
         }
         caixa_menu("SUB-MENU", opcoes)
@@ -533,17 +532,16 @@ def gestao_transacoes():
 
         if op == "1":
             print()
-            mensagem_info("Preencha os dados da nova transação")
+            mensagem_info("Preencha os dados da nova transacao")
             print()
             id_user   = _formatar_id(prompt_campo("ID do utilizador"))
             tipo      = prompt_campo("Tipo  (deposito / levantamento)")
             valor     = prompt_campo("Valor  (EUR)")
             data      = prompt_campo("Data  (DD-MM-AAAA)")
             id_casino = _formatar_id(prompt_campo("ID do casino"))
-
             status, resultado = criar_transacao(id_user, tipo, valor, data, id_casino)
             if status == 201:
-                mensagem_sucesso(f"Transação criada com ID: {resultado['id_transacao']}!")
+                mensagem_sucesso(f"Transacao criada com ID: {resultado['id_transacao']}!")
             else:
                 mensagem_erro(str(resultado))
             aguardar_enter()
@@ -557,64 +555,62 @@ def gestao_transacoes():
                     itens_fmt[id_t] = {
                         'nome': f"{info['tipo']:<14}  utilizador:{info['id_utilizador']}  {sinal}EUR {info['valor']:.2f}  {info['data']}"
                     }
-                caixa_lista("LISTA DE TRANSAÇÕES", itens_fmt)
+                caixa_lista("LISTA DE TRANSACOES", itens_fmt)
             else:
-                mensagem_info("Nenhuma transação registada.")
+                mensagem_info("Nenhuma transacao registada.")
             aguardar_enter()
 
         elif op == "3":
-            id_t = prompt_campo("ID da transação")
+            id_t = prompt_campo("ID da transacao")
             status, dados = consultar_transacao(id_t)
             if status == 200:
-                caixa_detalhe("TRANSAÇÃO", dados)
+                caixa_detalhe("TRANSACAO", dados)
             else:
                 mensagem_erro(str(dados))
             aguardar_enter()
 
         elif op == "4":
-            id_t = prompt_campo("ID da transação")
-            mensagem_aviso("Deixe em branco para não alterar")
+            id_t = prompt_campo("ID da transacao")
+            mensagem_aviso("Deixe em branco para nao alterar")
             print()
             tipo  = prompt_campo("Novo tipo  (deposito / levantamento)") or None
             valor = prompt_campo("Novo valor  (EUR)")                     or None
             data  = prompt_campo("Nova data  (DD-MM-AAAA)")              or None
-
             kwargs = {}
             if tipo:  kwargs['tipo']  = tipo
             if valor:
                 try:
                     kwargs['valor'] = float(valor)
                 except ValueError:
-                    mensagem_erro("Valor inválido.")
+                    mensagem_erro("Valor invalido.")
                     aguardar_enter()
                     continue
-            if data:  kwargs['data'] = data
-
+            if data: kwargs['data'] = data
             status, resultado = atualizar_transacao(id_t, **kwargs)
             if status == 200:
-                mensagem_sucesso("Transação atualizada com sucesso!")
+                mensagem_sucesso("Transacao atualizada com sucesso!")
             else:
                 mensagem_erro(str(resultado))
             aguardar_enter()
 
         elif op == "5":
-            id_t = prompt_campo("ID da transação")
-            mensagem_confirmacao("Atenção: esta ação é irreversível!")
-            confirm = prompt_campo("Confirmar remoção? (s/n)", VERMELHO).lower()
+            id_t = prompt_campo("ID da transacao")
+            mensagem_confirmacao("Atencao: esta acao e irreversivel!")
+            confirm = prompt_campo("Confirmar remocao? (s/n)", VERMELHO).lower()
             if confirm == 's':
                 status, resultado = remover_transacao(id_t)
                 if status == 200:
-                    mensagem_sucesso("Transação removida com sucesso!")
+                    mensagem_sucesso("Transacao removida com sucesso!")
                 else:
                     mensagem_erro(str(resultado))
             else:
-                mensagem_info("Operação cancelada.")
+                mensagem_info("Operacao cancelada.")
             aguardar_enter()
 
         elif op == "0":
             break
         else:
-            mensagem_erro("Opção inválida. Escolha uma opção do menu.")
+            mensagem_erro("Opcao invalida. Escolha uma opcao do menu.")
 
 
 # ══════════════════════ ECRÃ DE SAÍDA ══════════════════════
@@ -623,7 +619,7 @@ def ecra_saida():
     limpar()
     linhas = [
         "Obrigado por utilizar o Royal Casino.",
-        "Até à próxima!",
+        "Ate a proxima!",
     ]
     larg = max(len(l) for l in linhas) + 10
     print()
@@ -632,8 +628,8 @@ def ecra_saida():
     for l in linhas:
         pad = larg - len(l)
         esq = pad // 2
-        dir = pad - esq
-        print(f"  {VERDE}{B}║{R}{BRANCO}{B}{' ' * esq}{l}{' ' * dir}{R}{VERDE}{B}║{R}")
+        dire = pad - esq
+        print(f"  {VERDE}{B}║{R}{BRANCO}{B}{' ' * esq}{l}{' ' * dire}{R}{VERDE}{B}║{R}")
     print(f"  {VERDE}{B}║{' ' * larg}║{R}")
     print(f"  {VERDE}{B}+{'═' * larg}+{R}")
     print()
@@ -657,7 +653,7 @@ def main():
             ecra_saida()
             break
         else:
-            mensagem_erro("Opção inválida. Escolha uma opção do menu.")
+            mensagem_erro("Opcao invalida. Escolha uma opcao do menu.")
 
 
 if __name__ == "__main__":

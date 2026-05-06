@@ -1,5 +1,5 @@
 # utilizador.py
-# CRUD simples para entidade Utilizador
+# CRUD da entidade Utilizador
 # ==============================
 
 from utils import (
@@ -49,13 +49,13 @@ def criar_utilizador_casino(nome, email, tipo_conta, data_nascimento, nif, iban)
 
     id_utilizador = gerar_id_utilizador()
     utilizador = {
-        "id_utilizador": id_utilizador,
-        "nome": nome,
-        "email": email,
-        "tipo_conta": tipo_conta,
+        "id_utilizador":   id_utilizador,
+        "nome":            nome,
+        "email":           email,
+        "tipo_conta":      tipo_conta,
         "data_nascimento": data_nascimento,
-        "nif": nif,
-        "iban": iban
+        "nif":             nif,
+        "iban":            iban
     }
     utilizadores[id_utilizador] = utilizador
     return 201, utilizador
@@ -137,7 +137,6 @@ def atualizar_utilizador_casino(id_utilizador, nome=None, email=None, tipo_conta
 # DELETE
 def remover_utilizador_casino(id_utilizador):
     id_utilizador = str(id_utilizador).strip().zfill(3)
-
     if id_utilizador not in utilizadores:
         return 404, "Utilizador não encontrado."
     del utilizadores[id_utilizador]

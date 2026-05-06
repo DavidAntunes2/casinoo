@@ -1,5 +1,5 @@
 # casino.py
-# CRUD simples para entidade Casino
+# CRUD da entidade Casino
 # ==============================
 
 from utils import (
@@ -43,12 +43,12 @@ def criar_casino(nome, localizacao, licenca, data_inauguracao, saldo):
 
     id_casino = gerar_id_casino()
     casino = {
-        "id_casino": id_casino,
-        "nome": nome,
-        "localizacao": localizacao,
-        "licenca": licenca,
+        "id_casino":        id_casino,
+        "nome":             nome,
+        "localizacao":      localizacao,
+        "licenca":          licenca,
         "data_inauguracao": data_inauguracao,
-        "saldo": saldo
+        "saldo":            saldo
     }
     casinos[id_casino] = casino
     return 201, casino
@@ -73,7 +73,6 @@ def consultar_casino(id_casino):
 def atualizar_casino(id_casino, nome=None, localizacao=None, licenca=None,
                      data_inauguracao=None, saldo=None):
     id_casino = str(id_casino).strip().zfill(3)
-
     if id_casino not in casinos:
         return 404, "Casino não encontrado."
 
@@ -113,7 +112,6 @@ def atualizar_casino(id_casino, nome=None, localizacao=None, licenca=None,
 # DELETE
 def remover_casino(id_casino):
     id_casino = str(id_casino).strip().zfill(3)
-
     if id_casino not in casinos:
         return 404, "Casino não encontrado."
     del casinos[id_casino]

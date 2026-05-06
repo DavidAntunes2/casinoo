@@ -2,23 +2,16 @@
 # CRUD da entidade Transação
 # ==============================
 
-import random
-import string
 from utilizador import utilizadores
 from casino import casinos
 from utils import (
+    gerar_id_transacao,
     validar_tipo_transacao,
     validar_valor_transacao,
     validar_data_transacao
 )
 
 transacoes = {}
-
-
-def gerar_id_transacao():
-    caracteres = string.ascii_uppercase + string.digits
-    codigo = ''.join(random.choices(caracteres, k=8))
-    return f"TR-{codigo}"
 
 
 # CREATE
@@ -74,22 +67,22 @@ def consultar_transacao(id_transacao):
 def listar_transacoes_por_utilizador(id_utilizador):
     if id_utilizador not in utilizadores:
         return 404, "Utilizador não encontrado."
-    result = {id_t: t for id_t, t in transacoes.items()
-              if t["id_utilizador"] == id_utilizador}
-    if not result:
+    resultado = {id_t: t for id_t, t in transacoes.items()
+                 if t["id_utilizador"] == id_utilizador}
+    if not resultado:
         return 404, "Sem transações para este utilizador."
-    return 200, result
+    return 200, resultado
 
 
 # READ (listar por casino)
 def listar_transacoes_por_casino(id_casino):
     if id_casino not in casinos:
         return 404, "Casino não encontrado."
-    result = {id_t: t for id_t, t in transacoes.items()
-              if t["id_casino"] == id_casino}
-    if not result:
+    resultado = {id_t: t for id_t, t in transacoes.items()
+                 if t["id_casino"] == id_casino}
+    if not resultado:
         return 404, "Sem transações para este casino."
-    return 200, result
+    return 200, resultado
 
 
 # UPDATE

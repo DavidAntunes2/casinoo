@@ -69,13 +69,13 @@ Menu Principal
 ### 👤 Utilizador
 ```python
 {
-    "id_utilizador":    "UC-3F2A1B9C",
-    "nome":             "João Silva",
-    "email":            "joao@email.com",
-    "tipo_conta":       "vip",           # standard | vip | high roller
-    "data_nascimento":  "01-01-1990",
-    "nif":              "123456789",
-    "iban":             "PT50000201231234567890154"
+    "id_utilizador":   "UC-3F2A1B9C",
+    "nome":            "João Silva",
+    "email":           "joao@email.com",
+    "tipo_conta":      "vip",           # standard | vip | high roller
+    "data_nascimento": "01-01-1990",
+    "nif":             "123456789",
+    "iban":            "PT50000201231234567890154"
 }
 ```
 

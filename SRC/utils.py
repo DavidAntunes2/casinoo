@@ -3,12 +3,22 @@
 # ==============================
 
 import re
+import random
+import string
 from datetime import datetime
+
 
 # ══════════════════════ GERAÇÃO DE IDs ══════════════════════
 
-id_casino_counter    = 1
+id_casino_counter     = 1
 id_utilizador_counter = 1
+
+
+def gerar_id_utilizador():
+    global id_utilizador_counter
+    id_atual = id_utilizador_counter
+    id_utilizador_counter += 1
+    return str(id_atual).zfill(3)
 
 
 def gerar_id_casino():
@@ -18,11 +28,16 @@ def gerar_id_casino():
     return str(id_atual).zfill(3)
 
 
-def gerar_id_utilizador():
-    global id_utilizador_counter
-    id_atual = id_utilizador_counter
-    id_utilizador_counter += 1
-    return str(id_atual).zfill(3)
+def gerar_id_jogo():
+    caracteres = string.ascii_uppercase + string.digits
+    codigo = ''.join(random.choices(caracteres, k=8))
+    return f"JG-{codigo}"
+
+
+def gerar_id_transacao():
+    caracteres = string.ascii_uppercase + string.digits
+    codigo = ''.join(random.choices(caracteres, k=8))
+    return f"TR-{codigo}"
 
 
 # ══════════════════════ VALIDAÇÕES GERAIS ══════════════════════
@@ -135,20 +150,31 @@ def validar_tipo_jogo(tipo):
     return True, tipo
 
 
-def validar_aposta(aposta, min_val=0, max_val=1000000):
+def validar_aposta_minima(aposta):
     try:
         aposta = float(aposta)
-        if aposta < min_val:
-            return False, f"Aposta não pode ser menor que {min_val}."
-        if aposta > max_val:
-            return False, f"Aposta não pode ser maior que {max_val}."
+        if aposta <= 0:
+            return False, "Aposta mínima deve ser maior que 0."
+        if aposta > 1000000:
+            return False, "Aposta mínima muito alta (máx: 1.000.000)."
         return True, round(aposta, 2)
     except (ValueError, TypeError):
-        return False, "Valor de aposta inválido."
+        return False, "Aposta mínima inválida."
+
+
+def validar_aposta_maxima(aposta_maxima, aposta_minima):
+    try:
+        aposta_maxima = float(aposta_maxima)
+        if aposta_maxima <= aposta_minima:
+            return False, "Aposta máxima deve ser maior que a aposta mínima."
+        if aposta_maxima > 1000000:
+            return False, "Aposta máxima muito alta (máx: 1.000.000)."
+        return True, round(aposta_maxima, 2)
+    except (ValueError, TypeError):
+        return False, "Aposta máxima inválida."
 
 
 # ══════════════════════ VALIDAÇÕES DE TRANSAÇÃO ══════════════════════
-# Movidas de transacao.py para cá
 
 def validar_tipo_transacao(tipo):
     if not tipo or not isinstance(tipo, str):

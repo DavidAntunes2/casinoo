@@ -3,6 +3,9 @@
 # ==============================
 
 from utils import (
+    FICHEIRO_UTILIZADORES,
+    carregar_dados,
+    guardar_dados,
     gerar_id_utilizador,
     validar_nome,
     validar_email,
@@ -11,8 +14,6 @@ from utils import (
     validar_nif,
     validar_iban
 )
-
-utilizadores = {}
 
 
 # CREATE
@@ -47,6 +48,7 @@ def criar_utilizador_casino(nome, email, tipo_conta, data_nascimento, nif, iban)
         return 500, res
     iban = res
 
+    utilizadores = carregar_dados(FICHEIRO_UTILIZADORES)
     id_utilizador = gerar_id_utilizador()
     utilizador = {
         "id_utilizador":   id_utilizador,
@@ -58,11 +60,13 @@ def criar_utilizador_casino(nome, email, tipo_conta, data_nascimento, nif, iban)
         "iban":            iban
     }
     utilizadores[id_utilizador] = utilizador
+    guardar_dados(FICHEIRO_UTILIZADORES, utilizadores)
     return 201, utilizador
 
 
 # READ (listar todos)
 def listar_utilizadores_casino():
+    utilizadores = carregar_dados(FICHEIRO_UTILIZADORES)
     if not utilizadores:
         return 404, "Não existem utilizadores registados."
     return 200, utilizadores
@@ -70,6 +74,7 @@ def listar_utilizadores_casino():
 
 # READ (consultar individual)
 def consultar_utilizador_casino(identificador):
+    utilizadores = carregar_dados(FICHEIRO_UTILIZADORES)
     identificador = str(identificador).strip()
 
     if identificador.isdigit():
@@ -90,6 +95,7 @@ def consultar_utilizador_casino(identificador):
 # UPDATE
 def atualizar_utilizador_casino(id_utilizador, nome=None, email=None, tipo_conta=None,
                                 data_nascimento=None, nif=None, iban=None):
+    utilizadores = carregar_dados(FICHEIRO_UTILIZADORES)
     id_utilizador = str(id_utilizador).strip().zfill(3)
 
     if id_utilizador not in utilizadores:
@@ -131,13 +137,18 @@ def atualizar_utilizador_casino(id_utilizador, nome=None, email=None, tipo_conta
             return 500, res
         utilizadores[id_utilizador]["iban"] = res
 
+    guardar_dados(FICHEIRO_UTILIZADORES, utilizadores)
     return 200, utilizadores[id_utilizador]
 
 
 # DELETE
 def remover_utilizador_casino(id_utilizador):
+    utilizadores = carregar_dados(FICHEIRO_UTILIZADORES)
     id_utilizador = str(id_utilizador).strip().zfill(3)
+
     if id_utilizador not in utilizadores:
         return 404, "Utilizador não encontrado."
+
     del utilizadores[id_utilizador]
+    guardar_dados(FICHEIRO_UTILIZADORES, utilizadores)
     return 200, id_utilizador

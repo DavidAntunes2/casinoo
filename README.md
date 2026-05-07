@@ -79,6 +79,14 @@ Menu Principal
 }
 ```
 
+| Função | Descrição | Códigos |
+|---|---|---|
+| `criar_utilizador_casino()` | Regista um novo membro | 201 / 500 |
+| `listar_utilizadores_casino()` | Lista todos os membros | 200 / 404 |
+| `consultar_utilizador_casino()` | Consulta um membro pelo ID | 200 / 404 |
+| `atualizar_utilizador_casino()` | Atualiza campos de um membro | 200 / 404 / 500 |
+| `remover_utilizador_casino()` | Remove um membro | 200 / 404 |
+
 ### 🏛️ Casino
 ```python
 {

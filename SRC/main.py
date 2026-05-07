@@ -3,8 +3,14 @@
 # ==============================
 
 import os
+import sys
 import time
 import re
+
+# Forçar encoding UTF-8 no terminal Windows
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stdin.reconfigure(encoding='utf-8')
 
 from utilizador import *
 from casino import *
@@ -52,11 +58,17 @@ def _centro(texto, largura):
     return ' ' * l + texto + ' ' * r
 
 
-def _formatar_id(id_input):
+def _formatar_id_numerico(id_input):
+    """Para IDs numéricos de utilizador e casino (ex: 1 -> 001)"""
     s = str(id_input).strip()
     if s.isdigit():
         return s.zfill(3)
     return s
+
+
+def _formatar_id_texto(id_input):
+    """Para IDs com prefixo de jogo e transação (ex: JG-ABC123, TR-ABC123)"""
+    return str(id_input).strip().upper()
 
 
 # ══════════════════════ CABEÇALHO ══════════════════════
@@ -78,11 +90,9 @@ def _msg(tag, cor, msg):
     tag_raw = _strip_ansi(tag)
     msg_raw = _strip_ansi(msg)
 
-    # Largura baseada só em texto visível
     n = len(f"  {tag_raw}   {msg_raw}  ")
     borda = f"  {cor}{B}+{'─' * n}+{R}"
 
-    # Padding para fechar a borda direita corretamente
     interior_raw = f"  {tag_raw}   {msg_raw}  "
     pad = n - len(interior_raw)
 
@@ -292,7 +302,7 @@ def gestao_utilizadores():
             aguardar_enter()
 
         elif op == "3":
-            id_u = _formatar_id(prompt_campo("ID do utilizador"))
+            id_u = _formatar_id_numerico(prompt_campo("ID do utilizador"))
             status, dados = consultar_utilizador_casino(id_u)
             if status == 200:
                 caixa_detalhe("UTILIZADOR", dados)
@@ -301,7 +311,7 @@ def gestao_utilizadores():
             aguardar_enter()
 
         elif op == "4":
-            id_u = _formatar_id(prompt_campo("ID do utilizador"))
+            id_u = _formatar_id_numerico(prompt_campo("ID do utilizador"))
             mensagem_aviso("Deixe em branco para não alterar")
             print()
             nome  = prompt_campo("Novo nome")                            or None
@@ -318,9 +328,9 @@ def gestao_utilizadores():
             aguardar_enter()
 
         elif op == "5":
-            id_u = _formatar_id(prompt_campo("ID do utilizador"))
-            mensagem_confirmacao("Atencao: esta acao e irreversivel!")
-            confirm = prompt_campo("Confirmar remocao? (s/n)", VERMELHO).lower()
+            id_u = _formatar_id_numerico(prompt_campo("ID do utilizador"))
+            mensagem_confirmacao("Atenção: esta ação é irreversível!")
+            confirm = prompt_campo("Confirmar remoção? (s/n)", VERMELHO).lower()
             if confirm == 's':
                 status, resultado = remover_utilizador_casino(id_u)
                 if status == 200:
@@ -328,13 +338,13 @@ def gestao_utilizadores():
                 else:
                     mensagem_erro(str(resultado))
             else:
-                mensagem_info("Operacao cancelada.")
+                mensagem_info("Operação cancelada.")
             aguardar_enter()
 
         elif op == "0":
             break
         else:
-            mensagem_erro("Opcao invalida. Escolha uma opcao do menu.")
+            mensagem_erro("Opção inválida. Escolha uma opção do menu.")
 
 
 # ══════════════════════ CASINOS ══════════════════════
@@ -358,9 +368,9 @@ def gestao_casinos():
             mensagem_info("Preencha os dados do novo casino")
             print()
             nome       = prompt_campo("Nome do casino")
-            local      = prompt_campo("Localizacao  (cidade, pais)")
-            licenca    = prompt_campo("Licenca")
-            data_inaug = prompt_campo("Data de inauguracao  (DD-MM-AAAA)")
+            local      = prompt_campo("Localização  (cidade, país)")
+            licenca    = prompt_campo("Licença")
+            data_inaug = prompt_campo("Data de inauguração  (DD-MM-AAAA)")
             saldo      = prompt_campo("Saldo inicial  (EUR)", VERDE)
             status, resultado = criar_casino(nome, local, licenca, data_inaug, saldo)
             if status == 201:
@@ -378,7 +388,7 @@ def gestao_casinos():
             aguardar_enter()
 
         elif op == "3":
-            id_c = _formatar_id(prompt_campo("ID do casino"))
+            id_c = _formatar_id_numerico(prompt_campo("ID do casino"))
             status, dados = consultar_casino(id_c)
             if status == 200:
                 caixa_detalhe("CASINO", dados)
@@ -387,14 +397,14 @@ def gestao_casinos():
             aguardar_enter()
 
         elif op == "4":
-            id_c = _formatar_id(prompt_campo("ID do casino"))
-            mensagem_aviso("Deixe em branco para nao alterar")
+            id_c = _formatar_id_numerico(prompt_campo("ID do casino"))
+            mensagem_aviso("Deixe em branco para não alterar")
             print()
-            nome    = prompt_campo("Novo nome")                             or None
-            local   = prompt_campo("Nova localizacao")                      or None
-            licenca = prompt_campo("Nova licenca")                          or None
-            data    = prompt_campo("Nova data de inauguracao (DD-MM-AAAA)") or None
-            saldo   = prompt_campo("Novo saldo  (EUR)", VERDE)              or None
+            nome    = prompt_campo("Novo nome")                              or None
+            local   = prompt_campo("Nova localização")                       or None
+            licenca = prompt_campo("Nova licença")                           or None
+            data    = prompt_campo("Nova data de inauguração (DD-MM-AAAA)")  or None
+            saldo   = prompt_campo("Novo saldo  (EUR)", VERDE)               or None
             status, resultado = atualizar_casino(id_c, nome, local, licenca, data, saldo)
             if status == 200:
                 mensagem_sucesso("Casino atualizado com sucesso!")
@@ -403,9 +413,9 @@ def gestao_casinos():
             aguardar_enter()
 
         elif op == "5":
-            id_c = _formatar_id(prompt_campo("ID do casino"))
-            mensagem_confirmacao("Atencao: esta acao e irreversivel!")
-            confirm = prompt_campo("Confirmar remocao? (s/n)", VERMELHO).lower()
+            id_c = _formatar_id_numerico(prompt_campo("ID do casino"))
+            mensagem_confirmacao("Atenção: esta ação é irreversível!")
+            confirm = prompt_campo("Confirmar remoção? (s/n)", VERMELHO).lower()
             if confirm == 's':
                 status, resultado = remover_casino(id_c)
                 if status == 200:
@@ -413,13 +423,13 @@ def gestao_casinos():
                 else:
                     mensagem_erro(str(resultado))
             else:
-                mensagem_info("Operacao cancelada.")
+                mensagem_info("Operação cancelada.")
             aguardar_enter()
 
         elif op == "0":
             break
         else:
-            mensagem_erro("Opcao invalida. Escolha uma opcao do menu.")
+            mensagem_erro("Opção inválida. Escolha uma opção do menu.")
 
 
 # ══════════════════════ JOGOS ══════════════════════
@@ -444,9 +454,9 @@ def gestao_jogos():
             print()
             nome       = prompt_campo("Nome do jogo")
             tipo       = prompt_campo("Tipo  (carta / roleta / slot)")
-            aposta_min = prompt_campo("Aposta minima  (EUR)")
-            aposta_max = prompt_campo("Aposta maxima  (EUR)")
-            id_casino  = _formatar_id(prompt_campo("ID do casino"))
+            aposta_min = prompt_campo("Aposta mínima  (EUR)")
+            aposta_max = prompt_campo("Aposta máxima  (EUR)")
+            id_casino  = _formatar_id_numerico(prompt_campo("ID do casino"))
             status, resultado = criar_jogo(nome, tipo, aposta_min, aposta_max, id_casino)
             if status == 201:
                 mensagem_sucesso(f"Jogo criado com ID: {resultado['id_jogo']}!")
@@ -468,7 +478,7 @@ def gestao_jogos():
             aguardar_enter()
 
         elif op == "3":
-            id_j = prompt_campo("ID do jogo")
+            id_j = _formatar_id_texto(prompt_campo("ID do jogo  (ex: JG-AB12CD34)"))
             status, dados = consultar_jogo(id_j)
             if status == 200:
                 caixa_detalhe("JOGO", dados)
@@ -477,16 +487,16 @@ def gestao_jogos():
             aguardar_enter()
 
         elif op == "4":
-            id_j = prompt_campo("ID do jogo")
-            mensagem_aviso("Deixe em branco para nao alterar")
+            id_j = _formatar_id_texto(prompt_campo("ID do jogo  (ex: JG-AB12CD34)"))
+            mensagem_aviso("Deixe em branco para não alterar")
             print()
             nome       = prompt_campo("Novo nome")                     or None
             tipo       = prompt_campo("Novo tipo (carta/roleta/slot)") or None
-            aposta_min = prompt_campo("Nova aposta minima  (EUR)")     or None
-            aposta_max = prompt_campo("Nova aposta maxima  (EUR)")     or None
+            aposta_min = prompt_campo("Nova aposta mínima  (EUR)")     or None
+            aposta_max = prompt_campo("Nova aposta máxima  (EUR)")     or None
             id_casino  = prompt_campo("Novo ID do casino")             or None
             if id_casino:
-                id_casino = _formatar_id(id_casino)
+                id_casino = _formatar_id_numerico(id_casino)
             status, resultado = atualizar_jogo(id_j, nome, tipo, aposta_min, aposta_max, id_casino)
             if status == 200:
                 mensagem_sucesso("Jogo atualizado com sucesso!")
@@ -495,9 +505,9 @@ def gestao_jogos():
             aguardar_enter()
 
         elif op == "5":
-            id_j = prompt_campo("ID do jogo")
-            mensagem_confirmacao("Atencao: esta acao e irreversivel!")
-            confirm = prompt_campo("Confirmar remocao? (s/n)", VERMELHO).lower()
+            id_j = _formatar_id_texto(prompt_campo("ID do jogo  (ex: JG-AB12CD34)"))
+            mensagem_confirmacao("Atenção: esta ação é irreversível!")
+            confirm = prompt_campo("Confirmar remoção? (s/n)", VERMELHO).lower()
             if confirm == 's':
                 status, resultado = remover_jogo(id_j)
                 if status == 200:
@@ -505,13 +515,13 @@ def gestao_jogos():
                 else:
                     mensagem_erro(str(resultado))
             else:
-                mensagem_info("Operacao cancelada.")
+                mensagem_info("Operação cancelada.")
             aguardar_enter()
 
         elif op == "0":
             break
         else:
-            mensagem_erro("Opcao invalida. Escolha uma opcao do menu.")
+            mensagem_erro("Opção inválida. Escolha uma opção do menu.")
 
 
 # ══════════════════════ TRANSAÇÕES ══════════════════════
@@ -520,11 +530,11 @@ def gestao_transacoes():
     while True:
         cabecalho("GESTÃO DE TRANSAÇÕES", "Operações CRUD")
         opcoes = {
-            "1": "Criar Transacao",
-            "2": "Listar Transacoes",
-            "3": "Consultar Transacao",
-            "4": "Atualizar Transacao",
-            "5": "Remover Transacao",
+            "1": "Criar Transação",
+            "2": "Listar Transações",
+            "3": "Consultar Transação",
+            "4": "Atualizar Transação",
+            "5": "Remover Transação",
             "0": "Voltar",
         }
         caixa_menu("SUB-MENU", opcoes)
@@ -532,16 +542,16 @@ def gestao_transacoes():
 
         if op == "1":
             print()
-            mensagem_info("Preencha os dados da nova transacao")
+            mensagem_info("Preencha os dados da nova transação")
             print()
-            id_user   = _formatar_id(prompt_campo("ID do utilizador"))
+            id_user   = _formatar_id_numerico(prompt_campo("ID do utilizador"))
             tipo      = prompt_campo("Tipo  (deposito / levantamento)")
             valor     = prompt_campo("Valor  (EUR)")
             data      = prompt_campo("Data  (DD-MM-AAAA)")
-            id_casino = _formatar_id(prompt_campo("ID do casino"))
+            id_casino = _formatar_id_numerico(prompt_campo("ID do casino"))
             status, resultado = criar_transacao(id_user, tipo, valor, data, id_casino)
             if status == 201:
-                mensagem_sucesso(f"Transacao criada com ID: {resultado['id_transacao']}!")
+                mensagem_sucesso(f"Transação criada com ID: {resultado['id_transacao']}!")
             else:
                 mensagem_erro(str(resultado))
             aguardar_enter()
@@ -555,23 +565,23 @@ def gestao_transacoes():
                     itens_fmt[id_t] = {
                         'nome': f"{info['tipo']:<14}  utilizador:{info['id_utilizador']}  {sinal}EUR {info['valor']:.2f}  {info['data']}"
                     }
-                caixa_lista("LISTA DE TRANSACOES", itens_fmt)
+                caixa_lista("LISTA DE TRANSAÇÕES", itens_fmt)
             else:
-                mensagem_info("Nenhuma transacao registada.")
+                mensagem_info("Nenhuma transação registada.")
             aguardar_enter()
 
         elif op == "3":
-            id_t = prompt_campo("ID da transacao")
+            id_t = _formatar_id_texto(prompt_campo("ID da transação  (ex: TR-AB12CD34)"))
             status, dados = consultar_transacao(id_t)
             if status == 200:
-                caixa_detalhe("TRANSACAO", dados)
+                caixa_detalhe("TRANSAÇÃO", dados)
             else:
                 mensagem_erro(str(dados))
             aguardar_enter()
 
         elif op == "4":
-            id_t = prompt_campo("ID da transacao")
-            mensagem_aviso("Deixe em branco para nao alterar")
+            id_t = _formatar_id_texto(prompt_campo("ID da transação  (ex: TR-AB12CD34)"))
+            mensagem_aviso("Deixe em branco para não alterar")
             print()
             tipo  = prompt_campo("Novo tipo  (deposito / levantamento)") or None
             valor = prompt_campo("Novo valor  (EUR)")                     or None
@@ -582,35 +592,35 @@ def gestao_transacoes():
                 try:
                     kwargs['valor'] = float(valor)
                 except ValueError:
-                    mensagem_erro("Valor invalido.")
+                    mensagem_erro("Valor inválido.")
                     aguardar_enter()
                     continue
             if data: kwargs['data'] = data
             status, resultado = atualizar_transacao(id_t, **kwargs)
             if status == 200:
-                mensagem_sucesso("Transacao atualizada com sucesso!")
+                mensagem_sucesso("Transação atualizada com sucesso!")
             else:
                 mensagem_erro(str(resultado))
             aguardar_enter()
 
         elif op == "5":
-            id_t = prompt_campo("ID da transacao")
-            mensagem_confirmacao("Atencao: esta acao e irreversivel!")
-            confirm = prompt_campo("Confirmar remocao? (s/n)", VERMELHO).lower()
+            id_t = _formatar_id_texto(prompt_campo("ID da transação  (ex: TR-AB12CD34)"))
+            mensagem_confirmacao("Atenção: esta ação é irreversível!")
+            confirm = prompt_campo("Confirmar remoção? (s/n)", VERMELHO).lower()
             if confirm == 's':
                 status, resultado = remover_transacao(id_t)
                 if status == 200:
-                    mensagem_sucesso("Transacao removida com sucesso!")
+                    mensagem_sucesso("Transação removida com sucesso!")
                 else:
                     mensagem_erro(str(resultado))
             else:
-                mensagem_info("Operacao cancelada.")
+                mensagem_info("Operação cancelada.")
             aguardar_enter()
 
         elif op == "0":
             break
         else:
-            mensagem_erro("Opcao invalida. Escolha uma opcao do menu.")
+            mensagem_erro("Opção inválida. Escolha uma opção do menu.")
 
 
 # ══════════════════════ ECRÃ DE SAÍDA ══════════════════════
@@ -619,7 +629,7 @@ def ecra_saida():
     limpar()
     linhas = [
         "Obrigado por utilizar o Royal Casino.",
-        "Ate a proxima!",
+        "Até à próxima!",
     ]
     larg = max(len(l) for l in linhas) + 10
     print()
@@ -653,7 +663,7 @@ def main():
             ecra_saida()
             break
         else:
-            mensagem_erro("Opcao invalida. Escolha uma opcao do menu.")
+            mensagem_erro("Opção inválida. Escolha uma opção do menu.")
 
 
 if __name__ == "__main__":

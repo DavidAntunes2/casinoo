@@ -10,6 +10,8 @@ SRC/
 ├── main.py          # Interface de terminal e navegação
 ├── utilizador.py    # CRUD da entidade Utilizador
 ├── casino.py        # CRUD da entidade Casino
+├── jogo.py          # CRUD da entidade Jogo
+├── transacao.py     # CRUD da entidade Transação
 └── utils.py         # Validações e geração de IDs
 
 ---
@@ -42,6 +44,22 @@ Menu Principal
 │     ├── [5] Remover casino
 │     └── [0] Voltar
 │
+├── [3] Gestão de Jogos
+│     ├── [1] Criar jogo
+│     ├── [2] Listar jogos
+│     ├── [3] Consultar jogo
+│     ├── [4] Atualizar jogo
+│     ├── [5] Remover jogo
+│     └── [0] Voltar
+│
+├── [4] Gestão de Transações
+│     ├── [1] Criar transação
+│     ├── [2] Listar transações
+│     ├── [3] Consultar transação
+│     ├── [4] Atualizar transação
+│     ├── [5] Remover transação
+│     └── [0] Voltar
+│
 └── [0] Sair
 
 ---
@@ -51,6 +69,7 @@ Menu Principal
 ### 👤 Utilizador
 ```python
 {
+    "id_utilizador":   "UC-3F2A1B9C",
     "nome":            "João Silva",
     "email":           "joao@email.com",
     "tipo_conta":      "vip",           # standard | vip | high roller
@@ -71,6 +90,7 @@ Menu Principal
 ### 🏛️ Casino
 ```python
 {
+    "id_casino":        "CA-7D4E2F1A",
     "nome":             "Royal Lisboa",
     "localizacao":      "Lisboa, Portugal",
     "licenca":          "PT-2024-001",
@@ -79,13 +99,29 @@ Menu Principal
 }
 ```
 
-| Função | Descrição | Códigos |
-|---|---|---|
-| `criar_casino()` | Regista um novo casino | 201 / 500 |
-| `listar_casinos()` | Lista todos os casinos | 200 / 404 |
-| `consultar_casino()` | Consulta um casino pelo ID | 200 / 404 |
-| `atualizar_casino()` | Atualiza campos de um casino | 200 / 404 / 500 |
-| `remover_casino()` | Remove um casino | 200 / 404 |
+### 🎮 Jogo
+```python
+{
+    "id_jogo":       "JG-8A3B5C7D",
+    "nome":          "Blackjack Vip",
+    "tipo":          "carta",          # carta | roleta | slot
+    "aposta_minima": 10.00,
+    "aposta_maxima": 5000.00,
+    "id_casino":     "CA-7D4E2F1A"
+}
+```
+
+### 💰 Transação
+```python
+{
+    "id_transacao":  "TR-2E4F6A8C",
+    "id_utilizador": "UC-3F2A1B9C",
+    "id_casino":     "CA-7D4E2F1A",
+    "tipo":          "deposito",       # deposito | levantamento
+    "valor":         500.00,
+    "data":          "15-04-2025"
+}
+```
 
 ---
 
@@ -94,21 +130,39 @@ Menu Principal
 ### Utilizador
 | Campo | Regras |
 |---|---|
-| `nome` | Apenas letras e hífens, sem palavrões, capitalização automática |
+| `nome` | Mínimo 2 caracteres, máximo 100 |
 | `email` | Formato válido `x@x.x` |
 | `tipo_conta` | `standard`, `vip` ou `high roller` |
-| `data_nascimento` | Formatos DD-MM-AAAA, AAAA-MM-DD ou DD/MM/AAAA — mínimo 18 anos |
-| `nif` | 9 dígitos com verificação do dígito de controlo |
-| `iban` | Formato PT + 23 dígitos com checksum mod 97 |
+| `data_nascimento` | Formato DD-MM-AAAA — mínimo 18 anos |
+| `nif` | Exatamente 9 dígitos |
+| `iban` | Formato PT + 23 dígitos |
 
 ### Casino
 | Campo | Regras |
 |---|---|
-| `nome` | Apenas letras e hífens, sem palavrões, capitalização automática |
+| `nome` | Mínimo 2 caracteres, máximo 100 |
 | `localizacao` | Mínimo 3 caracteres, máximo 200 |
 | `licenca` | Mínimo 5 caracteres, máximo 50 |
-| `data_inauguracao` | Formatos DD-MM-AAAA, AAAA-MM-DD ou DD/MM/AAAA |
-| `saldo` | Número ≥ 0, máximo 1 000 000 000, arredondado a 2 casas decimais |
+| `data_inauguracao` | Formato DD-MM-AAAA |
+| `saldo` | Número ≥ 0, máximo 1 000 000 000 |
+
+### Jogo
+| Campo | Regras |
+|---|---|
+| `nome` | Mínimo 2 caracteres, capitalizado automaticamente |
+| `tipo` | `carta`, `roleta` ou `slot` |
+| `aposta_minima` | Maior que 0 |
+| `aposta_maxima` | Maior que `aposta_minima` |
+| `id_casino` | Deve existir no sistema |
+
+### Transação
+| Campo | Regras |
+|---|---|
+| `id_utilizador` | Deve existir no sistema |
+| `id_casino` | Deve existir no sistema |
+| `tipo` | `deposito` ou `levantamento` |
+| `valor` | Maior que 0, máximo 1 000 000 |
+| `data` | Formato DD-MM-AAAA, não pode ser futura |
 
 ---
 
@@ -131,25 +185,32 @@ Todas as funções devolvem um tuplo `(código, resultado)`:
 |---|---|---|
 | Utilizador | `UC-XXXXXXXX` | `UC-3F2A1B9C` |
 | Casino | `CA-XXXXXXXX` | `CA-7D4E2F1A` |
+| Jogo | `JG-XXXXXXXX` | `JG-8A3B5C7D` |
+| Transação | `TR-XXXXXXXX` | `TR-2E4F6A8C` |
 
 ---
 
-## 🎨 Cores no Terminal
+## 📊 Exemplos de Uso
 
-| Cor | Utilização |
-|---|---|
-| 🟡 Dourado | Menus principais e bordas |
-| 🟢 Verde | Sucesso e saldos positivos |
-| 🔴 Vermelho | Erros e remoções |
-| 🔵 Azul | Gestão de casinos |
-| 🟣 Roxo | Emails e licenças |
-| ⚪ Cinza | Informações secundárias |
+```python
+# Criar um casino
+criar_casino("Royal Lisboa", "Lisboa, Portugal", "PT-2024-001", "01-01-2024", 1000000)
+# → (201, {"id_casino": "CA-7D4E2F1A", "nome": "Royal Lisboa", ...})
+
+# Criar um jogo
+criar_jogo("Blackjack VIP", "carta", 10.0, 5000.0, "CA-7D4E2F1A")
+# → (201, {"id_jogo": "JG-3F2A1B9C", "nome": "Blackjack Vip", ...})
+
+# Criar uma transação
+criar_transacao("UC-3F2A1B9C", "deposito", 500.0, "15-04-2025", "CA-7D4E2F1A")
+# → (201, {"id_transacao": "TR-7D4E2F1A", "tipo": "deposito", "valor": 500.0, ...})
+```
 
 ---
 
 ## 🐍 Dependências
 
-Python 3.8+ — apenas módulos da biblioteca padrão: `os` `time` `re` `uuid` `datetime`
+Python 3.8+ — apenas módulos da biblioteca padrão: `os` `time` `re` `datetime` `random` `string`
 
 ---
 

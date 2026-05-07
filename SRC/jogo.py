@@ -3,15 +3,16 @@
 # ==============================
 
 from utils import (
+    FICHEIRO_JOGOS,
+    FICHEIRO_CASINOS,
+    carregar_dados,
+    guardar_dados,
     gerar_id_jogo,
     validar_nome,
     validar_tipo_jogo,
     validar_aposta_minima,
     validar_aposta_maxima
 )
-from casino import casinos
-
-jogos = {}
 
 
 # CREATE
@@ -36,9 +37,11 @@ def criar_jogo(nome, tipo, aposta_minima, aposta_maxima, id_casino):
         return 500, res
     aposta_maxima = res
 
+    casinos = carregar_dados(FICHEIRO_CASINOS)
     if id_casino not in casinos:
         return 500, f"Casino com ID {id_casino} não encontrado."
 
+    jogos = carregar_dados(FICHEIRO_JOGOS)
     id_jogo = gerar_id_jogo()
     jogo = {
         "id_jogo":       id_jogo,
@@ -49,11 +52,13 @@ def criar_jogo(nome, tipo, aposta_minima, aposta_maxima, id_casino):
         "id_casino":     id_casino
     }
     jogos[id_jogo] = jogo
+    guardar_dados(FICHEIRO_JOGOS, jogos)
     return 201, jogo
 
 
 # READ (listar todos)
 def listar_jogos():
+    jogos = carregar_dados(FICHEIRO_JOGOS)
     if not jogos:
         return 404, "Sem jogos registados."
     return 200, jogos
@@ -61,6 +66,7 @@ def listar_jogos():
 
 # READ (consultar individual)
 def consultar_jogo(id_jogo):
+    jogos = carregar_dados(FICHEIRO_JOGOS)
     if id_jogo not in jogos:
         return 404, "Jogo não encontrado."
     return 200, jogos[id_jogo]
@@ -68,8 +74,10 @@ def consultar_jogo(id_jogo):
 
 # READ (listar por casino)
 def listar_jogos_por_casino(id_casino):
+    casinos = carregar_dados(FICHEIRO_CASINOS)
     if id_casino not in casinos:
         return 404, "Casino não encontrado."
+    jogos = carregar_dados(FICHEIRO_JOGOS)
     resultado = {id_j: j for id_j, j in jogos.items()
                  if j["id_casino"] == id_casino}
     if not resultado:
@@ -80,6 +88,8 @@ def listar_jogos_por_casino(id_casino):
 # UPDATE
 def atualizar_jogo(id_jogo, nome=None, tipo=None,
                    aposta_minima=None, aposta_maxima=None, id_casino=None):
+    jogos = carregar_dados(FICHEIRO_JOGOS)
+
     if id_jogo not in jogos:
         return 404, "Jogo não encontrado."
 
@@ -110,16 +120,22 @@ def atualizar_jogo(id_jogo, nome=None, tipo=None,
         jogos[id_jogo]["aposta_maxima"] = res
 
     if id_casino is not None:
+        casinos = carregar_dados(FICHEIRO_CASINOS)
         if id_casino not in casinos:
             return 500, f"Casino com ID {id_casino} não encontrado."
         jogos[id_jogo]["id_casino"] = id_casino
 
+    guardar_dados(FICHEIRO_JOGOS, jogos)
     return 200, jogos[id_jogo]
 
 
 # DELETE
 def remover_jogo(id_jogo):
+    jogos = carregar_dados(FICHEIRO_JOGOS)
+
     if id_jogo not in jogos:
         return 404, "Jogo não encontrado."
+
     del jogos[id_jogo]
+    guardar_dados(FICHEIRO_JOGOS, jogos)
     return 200, id_jogo

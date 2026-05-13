@@ -3,9 +3,6 @@
 # ==============================
 
 from utils import (
-    FICHEIRO_CASINOS,
-    carregar_dados,
-    guardar_dados,
     gerar_id_casino,
     validar_nome,
     validar_localizacao,
@@ -13,6 +10,8 @@ from utils import (
     validar_data,
     validar_saldo
 )
+
+casinos = {}
 
 
 # CREATE
@@ -42,7 +41,6 @@ def criar_casino(nome, localizacao, licenca, data_inauguracao, saldo):
         return 500, res
     saldo = res
 
-    casinos = carregar_dados(FICHEIRO_CASINOS)
     id_casino = gerar_id_casino()
     casino = {
         "id_casino":        id_casino,
@@ -53,13 +51,11 @@ def criar_casino(nome, localizacao, licenca, data_inauguracao, saldo):
         "saldo":            saldo
     }
     casinos[id_casino] = casino
-    guardar_dados(FICHEIRO_CASINOS, casinos)
     return 201, casino
 
 
 # READ (listar todos)
 def listar_casinos():
-    casinos = carregar_dados(FICHEIRO_CASINOS)
     if not casinos:
         return 404, "Não existem casinos registados."
     return 200, casinos
@@ -67,7 +63,6 @@ def listar_casinos():
 
 # READ (consultar individual)
 def consultar_casino(id_casino):
-    casinos = carregar_dados(FICHEIRO_CASINOS)
     id_casino = str(id_casino).strip().zfill(3)
     if id_casino not in casinos:
         return 404, "Casino não encontrado."
@@ -77,9 +72,7 @@ def consultar_casino(id_casino):
 # UPDATE
 def atualizar_casino(id_casino, nome=None, localizacao=None, licenca=None,
                      data_inauguracao=None, saldo=None):
-    casinos = carregar_dados(FICHEIRO_CASINOS)
     id_casino = str(id_casino).strip().zfill(3)
-
     if id_casino not in casinos:
         return 404, "Casino não encontrado."
 
@@ -113,18 +106,13 @@ def atualizar_casino(id_casino, nome=None, localizacao=None, licenca=None,
             return 500, res
         casinos[id_casino]["saldo"] = res
 
-    guardar_dados(FICHEIRO_CASINOS, casinos)
     return 200, casinos[id_casino]
 
 
 # DELETE
 def remover_casino(id_casino):
-    casinos = carregar_dados(FICHEIRO_CASINOS)
     id_casino = str(id_casino).strip().zfill(3)
-
     if id_casino not in casinos:
         return 404, "Casino não encontrado."
-
     del casinos[id_casino]
-    guardar_dados(FICHEIRO_CASINOS, casinos)
     return 200, id_casino

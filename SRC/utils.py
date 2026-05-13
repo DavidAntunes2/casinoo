@@ -5,27 +5,57 @@
 import re
 import random
 import string
+import json
+import os
 from datetime import datetime
+
+
+# ══════════════════════ JSON ══════════════════════
+
+def carregar_dados(ficheiro):
+    if not os.path.exists(ficheiro):
+        return {}
+    try:
+        with open(ficheiro, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return {}
+
+
+def guardar_dados(ficheiro, dados):
+    try:
+        with open(ficheiro, 'w', encoding='utf-8') as f:
+            json.dump(dados, f, ensure_ascii=False, indent=2)
+    except IOError as e:
+        print(f"Erro ao guardar ficheiro {ficheiro}: {e}")
+
+
+# ══════════════════════ FICHEIROS ══════════════════════
+
+FICHEIRO_UTILIZADORES = "utilizadores.json"
+FICHEIRO_CASINOS      = "casinos.json"
+FICHEIRO_JOGOS        = "jogos.json"
+FICHEIRO_TRANSACOES   = "transacoes.json"
 
 
 # ══════════════════════ GERAÇÃO DE IDs ══════════════════════
 
-id_casino_counter     = 1
-id_utilizador_counter = 1
-
-
 def gerar_id_utilizador():
-    global id_utilizador_counter
-    id_atual = id_utilizador_counter
-    id_utilizador_counter += 1
-    return str(id_atual).zfill(3)
+    dados = carregar_dados(FICHEIRO_UTILIZADORES)
+    contador = len(dados) + 1
+    ids_existentes = set(dados.keys())
+    while str(contador).zfill(3) in ids_existentes:
+        contador += 1
+    return str(contador).zfill(3)
 
 
 def gerar_id_casino():
-    global id_casino_counter
-    id_atual = id_casino_counter
-    id_casino_counter += 1
-    return str(id_atual).zfill(3)
+    dados = carregar_dados(FICHEIRO_CASINOS)
+    contador = len(dados) + 1
+    ids_existentes = set(dados.keys())
+    while str(contador).zfill(3) in ids_existentes:
+        contador += 1
+    return str(contador).zfill(3)
 
 
 def gerar_id_jogo():

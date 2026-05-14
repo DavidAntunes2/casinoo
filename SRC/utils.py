@@ -13,7 +13,6 @@ from datetime import datetime
 # ══════════════════════ JSON ══════════════════════
 
 def carregar_dados(ficheiro):
-    """Carrega dados de um ficheiro JSON. Devolve {} se não existir."""
     if not os.path.exists(ficheiro):
         return {}
     try:
@@ -24,7 +23,6 @@ def carregar_dados(ficheiro):
 
 
 def guardar_dados(ficheiro, dados):
-    """Guarda dados num ficheiro JSON."""
     try:
         with open(ficheiro, 'w', encoding='utf-8') as f:
             json.dump(dados, f, ensure_ascii=False, indent=2)
@@ -45,7 +43,6 @@ FICHEIRO_TRANSACOES   = "transacoes.json"
 def gerar_id_utilizador():
     dados = carregar_dados(FICHEIRO_UTILIZADORES)
     contador = len(dados) + 1
-    # Garante ID único mesmo com remoções
     ids_existentes = set(dados.keys())
     while str(contador).zfill(3) in ids_existentes:
         contador += 1

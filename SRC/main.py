@@ -7,7 +7,6 @@ import sys
 import time
 import re
 
-# Forçar encoding UTF-8 no terminal Windows
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding='utf-8')
     sys.stdin.reconfigure(encoding='utf-8')
@@ -59,7 +58,6 @@ def _centro(texto, largura):
 
 
 def _formatar_id_numerico(id_input):
-    """Para IDs numéricos de utilizador e casino (ex: 1 -> 001)"""
     s = str(id_input).strip()
     if s.isdigit():
         return s.zfill(3)
@@ -67,7 +65,6 @@ def _formatar_id_numerico(id_input):
 
 
 def _formatar_id_texto(id_input):
-    """Para IDs com prefixo de jogo e transação (ex: JG-ABC123, TR-ABC123)"""
     return str(id_input).strip().upper()
 
 
@@ -89,13 +86,10 @@ def cabecalho(titulo, subtitulo=None):
 def _msg(tag, cor, msg):
     tag_raw = _strip_ansi(tag)
     msg_raw = _strip_ansi(msg)
-
     n = len(f"  {tag_raw}   {msg_raw}  ")
     borda = f"  {cor}{B}+{'─' * n}+{R}"
-
     interior_raw = f"  {tag_raw}   {msg_raw}  "
     pad = n - len(interior_raw)
-
     print()
     print(borda)
     print(f"  {cor}{B}|{R}  {cor}{B}{tag}{R}   {BRANCO}{msg}{R}{' ' * pad}  {cor}{B}|{R}")
@@ -131,6 +125,110 @@ def aguardar_enter():
     input(f"  {CINZA}  Prima Enter para continuar...{R}  ")
 
 
+# ══════════════════════ TABELAS ══════════════════════
+
+def tabela(titulo, cabecalho_cols, linhas, cores_linha=None):
+    colunas  = len(cabecalho_cols)
+    larguras = [len(str(c)) for c in cabecalho_cols]
+
+    for linha in linhas:
+        for i, cell in enumerate(linha):
+            larguras[i] = max(larguras[i], len(_strip_ansi(str(cell))))
+
+    larg_total = sum(larguras) + (colunas * 3) + 1
+    larg_total = max(larg_total, len(_strip_ansi(titulo)) + 6)
+
+    sep_topo  = f"  {OURO}+{'─' * larg_total}+{R}"
+    sep_meio  = f"  {OURO}+" + "+".join(['─' * (l + 2) for l in larguras]) + f"+{R}"
+
+    print(f"\n{sep_topo}")
+    print(f"  {OURO}│{R}{CREME_CLARO}{B}{_centro(titulo, larg_total)}{R}{OURO}│{R}")
+    print(sep_meio)
+
+    cab_str = f"  {OURO}│{R}"
+    for i, c in enumerate(cabecalho_cols):
+        cab_str += f" {OURO2}{B}{str(c).upper():<{larguras[i]}}{R} {OURO}│{R}"
+    print(cab_str)
+    print(sep_meio)
+
+    for idx, linha in enumerate(linhas):
+        cor = cores_linha[idx] if cores_linha else CREME
+        linha_str = f"  {OURO}│{R}"
+        for i, cell in enumerate(linha):
+            cell_str = str(cell)
+            pad = larguras[i] - len(_strip_ansi(cell_str))
+            linha_str += f" {cor}{cell_str}{' ' * pad}{R} {OURO}│{R}"
+        print(linha_str)
+
+    print(sep_meio)
+
+
+def tabela_utilizadores(dados):
+    cols = ["ID", "Nome", "Email", "Tipo de Conta", "Nascimento", "NIF", "IBAN"]
+    linhas = []
+    for uid, u in dados.items():
+        linhas.append([
+            uid,
+            u.get("nome", ""),
+            u.get("email", ""),
+            u.get("tipo_conta", "").capitalize(),
+            u.get("data_nascimento", ""),
+            u.get("nif", ""),
+            u.get("iban", "")
+        ])
+    tabela("LISTA DE UTILIZADORES", cols, linhas)
+
+
+def tabela_casinos(dados):
+    cols = ["ID", "Nome", "Localização", "Licença", "Inauguração", "Saldo (EUR)"]
+    linhas = []
+    for cid, c in dados.items():
+        linhas.append([
+            cid,
+            c.get("nome", ""),
+            c.get("localizacao", ""),
+            c.get("licenca", ""),
+            c.get("data_inauguracao", ""),
+            f"{c.get('saldo', 0):,.2f}"
+        ])
+    tabela("LISTA DE CASINOS", cols, linhas)
+
+
+def tabela_jogos(dados):
+    cols = ["ID", "Nome", "Tipo", "Aposta Mín.", "Aposta Máx.", "Casino"]
+    linhas = []
+    for jid, j in dados.items():
+        linhas.append([
+            jid,
+            j.get("nome", ""),
+            j.get("tipo", "").capitalize(),
+            f"EUR {j.get('aposta_minima', 0):.2f}",
+            f"EUR {j.get('aposta_maxima', 0):.2f}",
+            j.get("id_casino", "")
+        ])
+    tabela("LISTA DE JOGOS", cols, linhas)
+
+
+def tabela_transacoes(dados):
+    cols = ["ID", "Utilizador", "Casino", "Tipo", "Valor (EUR)", "Data"]
+    linhas = []
+    cores  = []
+    for tid, t in dados.items():
+        tipo  = t.get("tipo", "")
+        valor = t.get("valor", 0)
+        sinal = f"+{valor:,.2f}" if tipo == "deposito" else f"-{valor:,.2f}"
+        linhas.append([
+            tid,
+            t.get("id_utilizador", ""),
+            t.get("id_casino", ""),
+            tipo.capitalize(),
+            sinal,
+            t.get("data", "")
+        ])
+        cores.append(VERDE if tipo == "deposito" else VERMELHO)
+    tabela("LISTA DE TRANSAÇÕES", cols, linhas, cores)
+
+
 # ══════════════════════ CAIXAS ══════════════════════
 
 def caixa_menu(titulo, opcoes):
@@ -153,50 +251,6 @@ def caixa_menu(titulo, opcoes):
     print(sep)
 
 
-def caixa_info(titulo, linhas):
-    raw_lens = [len(_strip_ansi(str(l))) for l in linhas]
-    larg = max(len(_strip_ansi(titulo)) + 6,
-               max(raw_lens) + 8, 36)
-    larg = min(larg, 68)
-
-    sep = f"  {OURO}+{'─' * larg}+{R}"
-    print(f"\n{sep}")
-    print(f"  {OURO}│{R}{CREME_CLARO}{B}{_centro(titulo, larg)}{R}{OURO}│{R}")
-    print(sep)
-    for linha in linhas:
-        raw = _strip_ansi(str(linha))
-        pad = larg - 4 - len(raw)
-        print(f"  {OURO}│{R}  {linha}{' ' * max(0, pad)}  {OURO}│{R}")
-    print(sep)
-
-
-def caixa_lista(titulo, itens):
-    if not itens:
-        mensagem_info("Nenhum item encontrado.")
-        return
-
-    entradas = []
-    for id_item, info in itens.items():
-        nome = info.get('nome', '')
-        saldo_txt = f"   EUR {info['saldo']:,.2f}" if 'saldo' in info else ""
-        vis = f"  {OURO2}#{id_item}{R}  {CREME}{nome}{R}{VERDE}{saldo_txt}{R}"
-        raw = f"  #{id_item}  {_strip_ansi(nome)}{saldo_txt}"
-        entradas.append((vis, raw))
-
-    larg = max(len(_strip_ansi(titulo)) + 6,
-               max(len(r) for _, r in entradas) + 6)
-    larg = min(larg, 78)
-
-    sep = f"  {OURO}+{'─' * larg}+{R}"
-    print(f"\n{sep}")
-    print(f"  {OURO}│{R}{CREME_CLARO}{B}{_centro(titulo, larg)}{R}{OURO}│{R}")
-    print(sep)
-    for vis, raw in entradas:
-        pad = larg - len(raw)
-        print(f"  {OURO}│{R}{vis}{' ' * max(0, pad)}{OURO}│{R}")
-    print(sep)
-
-
 def caixa_detalhe(entidade, dados):
     COL_CHAVE = 22
     linhas_vis = []
@@ -207,6 +261,9 @@ def caixa_detalhe(entidade, dados):
         chave_pad = f"{chave_fmt}:".ljust(COL_CHAVE)
 
         if chave == 'saldo':
+            valor_vis = f"{VERDE}{B}EUR {valor:,.2f}{R}"
+            valor_raw = f"EUR {valor:,.2f}"
+        elif chave == 'valor':
             valor_vis = f"{VERDE}{B}EUR {valor:,.2f}{R}"
             valor_raw = f"EUR {valor:,.2f}"
         else:
@@ -296,7 +353,7 @@ def gestao_utilizadores():
         elif op == "2":
             status, dados = listar_utilizadores_casino()
             if status == 200:
-                caixa_lista("LISTA DE UTILIZADORES", dados)
+                tabela_utilizadores(dados)
             else:
                 mensagem_info("Nenhum utilizador registado.")
             aguardar_enter()
@@ -382,7 +439,7 @@ def gestao_casinos():
         elif op == "2":
             status, dados = listar_casinos()
             if status == 200:
-                caixa_lista("LISTA DE CASINOS", dados)
+                tabela_casinos(dados)
             else:
                 mensagem_info("Nenhum casino registado.")
             aguardar_enter()
@@ -400,11 +457,11 @@ def gestao_casinos():
             id_c = _formatar_id_numerico(prompt_campo("ID do casino"))
             mensagem_aviso("Deixe em branco para não alterar")
             print()
-            nome    = prompt_campo("Novo nome")                              or None
-            local   = prompt_campo("Nova localização")                       or None
-            licenca = prompt_campo("Nova licença")                           or None
-            data    = prompt_campo("Nova data de inauguração (DD-MM-AAAA)")  or None
-            saldo   = prompt_campo("Novo saldo  (EUR)", VERDE)               or None
+            nome    = prompt_campo("Novo nome")                             or None
+            local   = prompt_campo("Nova localização")                      or None
+            licenca = prompt_campo("Nova licença")                          or None
+            data    = prompt_campo("Nova data de inauguração (DD-MM-AAAA)") or None
+            saldo   = prompt_campo("Novo saldo  (EUR)", VERDE)              or None
             status, resultado = atualizar_casino(id_c, nome, local, licenca, data, saldo)
             if status == 200:
                 mensagem_sucesso("Casino atualizado com sucesso!")
@@ -467,12 +524,7 @@ def gestao_jogos():
         elif op == "2":
             status, dados = listar_jogos()
             if status == 200:
-                itens_fmt = {}
-                for id_j, info in dados.items():
-                    itens_fmt[id_j] = {
-                        'nome': f"{info['nome']}  [{info['tipo']}]  EUR {info['aposta_minima']:.2f} - {info['aposta_maxima']:.2f}"
-                    }
-                caixa_lista("LISTA DE JOGOS", itens_fmt)
+                tabela_jogos(dados)
             else:
                 mensagem_info("Nenhum jogo registado.")
             aguardar_enter()
@@ -559,13 +611,7 @@ def gestao_transacoes():
         elif op == "2":
             status, dados = listar_transacoes()
             if status == 200:
-                itens_fmt = {}
-                for id_t, info in dados.items():
-                    sinal = "+" if info['tipo'] == 'deposito' else "-"
-                    itens_fmt[id_t] = {
-                        'nome': f"{info['tipo']:<14}  utilizador:{info['id_utilizador']}  {sinal}EUR {info['valor']:.2f}  {info['data']}"
-                    }
-                caixa_lista("LISTA DE TRANSAÇÕES", itens_fmt)
+                tabela_transacoes(dados)
             else:
                 mensagem_info("Nenhuma transação registada.")
             aguardar_enter()

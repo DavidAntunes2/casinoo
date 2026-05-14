@@ -2,22 +2,26 @@
 # CRUD da entidade Transação
 # ==============================
 
-from utilizador import utilizadores
-from casino import casinos
 from utils import (
+    FICHEIRO_TRANSACOES,
+    FICHEIRO_UTILIZADORES,
+    FICHEIRO_CASINOS,
+    carregar_dados,
+    guardar_dados,
     gerar_id_transacao,
     validar_tipo_transacao,
     validar_valor_transacao,
     validar_data_transacao
 )
 
-transacoes = {}
-
 
 # CREATE
 def criar_transacao(id_utilizador, tipo, valor, data, id_casino):
+    utilizadores = carregar_dados(FICHEIRO_UTILIZADORES)
     if id_utilizador not in utilizadores:
         return 500, f"Utilizador com ID {id_utilizador} não encontrado."
+
+    casinos = carregar_dados(FICHEIRO_CASINOS)
     if id_casino not in casinos:
         return 500, f"Casino com ID {id_casino} não encontrado."
 
@@ -36,6 +40,7 @@ def criar_transacao(id_utilizador, tipo, valor, data, id_casino):
         return 500, res
     data = res
 
+    transacoes = carregar_dados(FICHEIRO_TRANSACOES)
     id_transacao = gerar_id_transacao()
     transacao = {
         "id_transacao":  id_transacao,
@@ -46,11 +51,13 @@ def criar_transacao(id_utilizador, tipo, valor, data, id_casino):
         "data":          data
     }
     transacoes[id_transacao] = transacao
+    guardar_dados(FICHEIRO_TRANSACOES, transacoes)
     return 201, transacao
 
 
 # READ (listar todos)
 def listar_transacoes():
+    transacoes = carregar_dados(FICHEIRO_TRANSACOES)
     if not transacoes:
         return 404, "Sem transações registadas."
     return 200, transacoes
@@ -58,6 +65,7 @@ def listar_transacoes():
 
 # READ (consultar individual)
 def consultar_transacao(id_transacao):
+    transacoes = carregar_dados(FICHEIRO_TRANSACOES)
     if id_transacao not in transacoes:
         return 404, "Transação não encontrada."
     return 200, transacoes[id_transacao]
@@ -65,8 +73,10 @@ def consultar_transacao(id_transacao):
 
 # READ (listar por utilizador)
 def listar_transacoes_por_utilizador(id_utilizador):
+    utilizadores = carregar_dados(FICHEIRO_UTILIZADORES)
     if id_utilizador not in utilizadores:
         return 404, "Utilizador não encontrado."
+    transacoes = carregar_dados(FICHEIRO_TRANSACOES)
     resultado = {id_t: t for id_t, t in transacoes.items()
                  if t["id_utilizador"] == id_utilizador}
     if not resultado:
@@ -76,8 +86,10 @@ def listar_transacoes_por_utilizador(id_utilizador):
 
 # READ (listar por casino)
 def listar_transacoes_por_casino(id_casino):
+    casinos = carregar_dados(FICHEIRO_CASINOS)
     if id_casino not in casinos:
         return 404, "Casino não encontrado."
+    transacoes = carregar_dados(FICHEIRO_TRANSACOES)
     resultado = {id_t: t for id_t, t in transacoes.items()
                  if t["id_casino"] == id_casino}
     if not resultado:
@@ -87,6 +99,8 @@ def listar_transacoes_por_casino(id_casino):
 
 # UPDATE
 def atualizar_transacao(id_transacao, tipo=None, valor=None, data=None, id_casino=None):
+    transacoes = carregar_dados(FICHEIRO_TRANSACOES)
+
     if id_transacao not in transacoes:
         return 404, "Transação não encontrada."
 
@@ -109,16 +123,22 @@ def atualizar_transacao(id_transacao, tipo=None, valor=None, data=None, id_casin
         transacoes[id_transacao]["data"] = res
 
     if id_casino is not None:
+        casinos = carregar_dados(FICHEIRO_CASINOS)
         if id_casino not in casinos:
             return 500, f"Casino com ID {id_casino} não encontrado."
         transacoes[id_transacao]["id_casino"] = id_casino
 
+    guardar_dados(FICHEIRO_TRANSACOES, transacoes)
     return 200, transacoes[id_transacao]
 
 
 # DELETE
 def remover_transacao(id_transacao):
+    transacoes = carregar_dados(FICHEIRO_TRANSACOES)
+
     if id_transacao not in transacoes:
         return 404, "Transação não encontrada."
+
     del transacoes[id_transacao]
+    guardar_dados(FICHEIRO_TRANSACOES, transacoes)
     return 200, id_transacao
